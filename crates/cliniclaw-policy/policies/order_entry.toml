@@ -1,0 +1,80 @@
+[[rule]]
+name = "require_approval_high_risk"
+action = "order_entry.propose_high_risk"
+decision = "require_approval"
+required_capabilities = ["order_entry"]
+priority = 20
+
+[[rule]]
+name = "allow_order_proposal"
+action = "order_entry.propose"
+decision = "allow"
+required_capabilities = ["order_entry"]
+priority = 10
+
+[[rule]]
+name = "allow_order_review"
+action = "order_entry.review"
+decision = "allow"
+required_capabilities = ["order_review"]
+priority = 10
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "order_entry.propose"
+name = "Intelligent Order Entry"
+description = "Parse natural language order intent into structured FHIR MedicationRequest"
+version = "1.0.0"
+severity = "high"
+allowed_roles = ["physician", "nurse_practitioner"]
+action = "order_entry.propose"
+required_capabilities = ["order_entry"]
+
+[skill.audit]
+intent = "Convert practitioner natural language order intent into a validated FHIR MedicationRequest"
+rationale = "Reduces order entry errors and improves clinical workflow efficiency while maintaining drug safety checks"
+
+[skill.audit.provenance]
+type = "guideline"
+reference = "ISMP Guidelines for Standard Order Sets 2023"
+uri = "https://www.ismp.org/guidelines/standard-order-sets"
+version = "2023"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]
+
+[[skill]]
+id = "order_entry.propose_high_risk"
+name = "High-Risk Order Entry"
+description = "Order entry for controlled substances and high-risk medications requiring dual sign-off"
+version = "1.0.0"
+severity = "critical"
+allowed_roles = ["physician"]
+action = "order_entry.propose_high_risk"
+required_capabilities = ["order_entry"]
+
+[skill.audit]
+intent = "Order controlled substances and high-risk medications with mandatory physician oversight"
+rationale = "DEA Schedule II and high-alert medications require dual verification to prevent diversion and harm"
+
+[skill.audit.provenance]
+type = "regulatory"
+reference = "DEA 21 CFR Part 1306 — Prescriptions"
+uri = "https://www.ecfr.gov/current/title-21/chapter-II/part-1306"
+version = "2024"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

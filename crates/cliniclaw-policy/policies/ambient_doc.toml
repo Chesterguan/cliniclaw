@@ -1,0 +1,76 @@
+[[rule]]
+name = "deny_note_on_finished_encounter"
+action = "ambient_doc.generate_note"
+decision = "deny"
+priority = 20
+
+[rule.conditions]
+encounter_status = "finished"
+
+[[rule]]
+name = "allow_note_generation"
+action = "ambient_doc.generate_note"
+decision = "allow"
+required_capabilities = ["note_generation"]
+priority = 10
+
+[rule.conditions]
+encounter_status = "in-progress"
+
+[[rule]]
+name = "allow_note_review"
+action = "ambient_doc.review_note"
+decision = "allow"
+required_capabilities = ["note_review"]
+priority = 10
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "ambient_doc.generate_note"
+name = "Ambient Documentation Note Generation"
+description = "Generate structured SOAP note from encounter transcript via Claude AI"
+version = "1.0.0"
+severity = "medium"
+allowed_roles = ["physician", "nurse_practitioner", "physician_assistant"]
+action = "ambient_doc.generate_note"
+required_capabilities = ["note_generation"]
+
+[skill.audit]
+intent = "Generate a structured clinical note from an ambient encounter transcript using AI"
+rationale = "Reduces clinician documentation burden while maintaining clinical accuracy and HIPAA compliance"
+
+[skill.audit.provenance]
+type = "sop"
+reference = "ClinicClaw Clinical Documentation SOP v1.0"
+uri = "https://cliniclaw.dev/sops/ambient-doc-v1"
+version = "1.0"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]
+
+[[skill]]
+id = "ambient_doc.review_note"
+name = "Ambient Documentation Note Review"
+description = "Review and approve AI-generated clinical notes"
+version = "1.0.0"
+severity = "low"
+allowed_roles = ["physician", "nurse_practitioner", "physician_assistant"]
+action = "ambient_doc.review_note"
+required_capabilities = ["note_review"]
+
+[skill.audit]
+intent = "Allow clinician review of AI-generated SOAP notes before finalization"
+rationale = "Human-in-the-loop verification ensures clinical accuracy of AI output"
+
+[skill.audit.provenance]
+type = "guideline"
+reference = "AMA Augmented Intelligence Policy H-480.940"
+uri = "https://www.ama-assn.org/system/files/2019-08/ai-2018-board-policy-summary.pdf"
+version = "2019"

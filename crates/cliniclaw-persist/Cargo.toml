@@ -1,0 +1,17 @@
+[package]
+name = "cliniclaw-persist"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Append-only, hash-chained audit trail and persistence for ClinicClaw"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+sqlx = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

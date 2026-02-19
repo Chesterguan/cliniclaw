@@ -1,0 +1,23 @@
+[package]
+name = "cliniclaw-agents"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "AI agents for ClinicClaw clinical workflows"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+reqwest = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+sha2 = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+secrecy = { workspace = true }
+base64 = { workspace = true }
+
+cliniclaw-fhir = { workspace = true }
+cliniclaw-policy = { workspace = true }
+cliniclaw-persist = { workspace = true }

@@ -1,0 +1,42 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+
+# Cargo lock for applications (keep for binaries, omit for libraries)
+# Cargo.lock
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# SQLite databases (dev artifacts)
+*.sqlite
+*.sqlite3
+*.db
+
+# Log files
+*.log
+logs/
+
+# Coverage and profiling
+lcov.info
+*.profraw
+tarpaulin-report.html
+
+# Generated docs (run `cargo doc` to regenerate)
+/doc/
+
+# Test fixtures with real PHI (never commit)
+tests/fixtures/real/

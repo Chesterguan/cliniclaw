@@ -1,0 +1,78 @@
+[[rule]]
+name = "require_approval_pa_submit"
+action = "prior_auth.submit"
+decision = "require_approval"
+required_capabilities = ["prior_auth"]
+priority = 20
+
+[[rule]]
+name = "allow_pa_assembly"
+action = "prior_auth.assemble"
+decision = "allow"
+required_capabilities = ["prior_auth"]
+priority = 10
+
+[[rule]]
+name = "allow_pa_status_check"
+action = "prior_auth.check_status"
+decision = "allow"
+required_capabilities = ["prior_auth"]
+priority = 10
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "prior_auth.assemble"
+name = "Prior Authorization Assembly"
+description = "Assemble prior authorization request from FHIR ServiceRequest and clinical documentation"
+version = "1.0.0"
+severity = "medium"
+allowed_roles = ["physician", "nurse_practitioner", "care_coordinator"]
+action = "prior_auth.assemble"
+required_capabilities = ["prior_auth"]
+
+[skill.audit]
+intent = "Assemble a complete prior authorization package from clinical documentation and FHIR resources"
+rationale = "Automates PA assembly to reduce administrative burden and accelerate time-to-authorization"
+
+[skill.audit.provenance]
+type = "regulatory"
+reference = "CMS-0057-F — Prior Authorization API Final Rule"
+uri = "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f"
+version = "2024"
+
+[skill.population]
+include = [
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]
+
+[[skill]]
+id = "prior_auth.submit"
+name = "Prior Authorization Submission"
+description = "Submit assembled PA request to payer for review — always requires physician sign-off"
+version = "1.0.0"
+severity = "critical"
+allowed_roles = ["physician", "nurse_practitioner"]
+action = "prior_auth.submit"
+required_capabilities = ["prior_auth"]
+
+[skill.audit]
+intent = "Submit prior authorization request to payer API after mandatory physician sign-off"
+rationale = "PA submissions are legally binding clinical attestations requiring physician accountability"
+
+[skill.audit.provenance]
+type = "regulatory"
+reference = "CMS-0057-F — Prior Authorization API Final Rule"
+uri = "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f"
+version = "2024"
+
+[skill.population]
+include = [
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]
