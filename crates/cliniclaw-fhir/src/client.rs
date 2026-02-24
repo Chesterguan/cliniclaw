@@ -1,7 +1,9 @@
+use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 use serde::{de::DeserializeOwned, Serialize};
 use tracing::{instrument, trace};
 
+use crate::backend::FhirBackend;
 use crate::bundle::Bundle;
 use crate::error::FhirError;
 
@@ -41,9 +43,16 @@ impl Clone for FhirClient {
 }
 
 impl FhirClient {
+    /// Default timeout for FHIR API calls (30 seconds).
+    const DEFAULT_TIMEOUT_SECS: u64 = 30;
+
     pub fn new(base_url: impl Into<String>) -> Self {
+        let http = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(Self::DEFAULT_TIMEOUT_SECS))
+            .build()
+            .expect("failed to build HTTP client");
         Self {
-            http: reqwest::Client::new(),
+            http,
             base_url: base_url.into().trim_end_matches('/').to_string(),
             auth_token: None,
         }
@@ -187,6 +196,97 @@ impl FhirClient {
             })
         } else {
             Err(Self::handle_error_response(R::resource_type(), "<search>", response).await)
+        }
+    }
+}
+
+#[async_trait]
+impl FhirBackend for FhirClient {
+    async fn read_resource(
+        &self,
+        resource_type: &str,
+        id: &str,
+    ) -> Result<serde_json::Value, FhirError> {
+        let url = format!("{}/{}/{}", self.base_url, resource_type, id);
+        trace!(url = %url, "FhirBackend::read_resource");
+
+        let response = self
+            .request(reqwest::Method::GET, &url)
+            .send()
+            .await
+            .map_err(FhirError::Http)?;
+
+        if response.status().is_success() {
+            response.json().await.map_err(FhirError::Http)
+        } else {
+            Err(Self::handle_error_response(resource_type, id, response).await)
+        }
+    }
+
+    async fn create_resource(
+        &self,
+        resource_type: &str,
+        resource: &serde_json::Value,
+    ) -> Result<serde_json::Value, FhirError> {
+        let url = format!("{}/{}", self.base_url, resource_type);
+        trace!(url = %url, "FhirBackend::create_resource");
+
+        let response = self
+            .request(reqwest::Method::POST, &url)
+            .json(resource)
+            .send()
+            .await
+            .map_err(FhirError::Http)?;
+
+        if response.status().is_success() {
+            response.json().await.map_err(FhirError::Http)
+        } else {
+            Err(Self::handle_error_response(resource_type, "<new>", response).await)
+        }
+    }
+
+    async fn update_resource(
+        &self,
+        resource_type: &str,
+        id: &str,
+        resource: &serde_json::Value,
+    ) -> Result<serde_json::Value, FhirError> {
+        let url = format!("{}/{}/{}", self.base_url, resource_type, id);
+        trace!(url = %url, "FhirBackend::update_resource");
+
+        let response = self
+            .request(reqwest::Method::PUT, &url)
+            .json(resource)
+            .send()
+            .await
+            .map_err(FhirError::Http)?;
+
+        if response.status().is_success() {
+            response.json().await.map_err(FhirError::Http)
+        } else {
+            Err(Self::handle_error_response(resource_type, id, response).await)
+        }
+    }
+
+    async fn search_resources(
+        &self,
+        resource_type: &str,
+        params: &[(&str, &str)],
+    ) -> Result<serde_json::Value, FhirError> {
+        let url = format!("{}/{}", self.base_url, resource_type);
+        trace!(url = %url, ?params, "FhirBackend::search_resources");
+
+        let response = self
+            .request(reqwest::Method::GET, &url)
+            .query(params)
+            .send()
+            .await
+            .map_err(FhirError::Http)?;
+
+        if response.status().is_success() {
+            response.json().await.map_err(FhirError::Http)
+        } else {
+            Err(Self::handle_error_response(resource_type, "<search>", response).await)
         }
     }
 }

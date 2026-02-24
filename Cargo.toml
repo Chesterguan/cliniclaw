@@ -4,8 +4,10 @@ members = [
     "crates/cliniclaw-fhir",
     "crates/cliniclaw-policy",
     "crates/cliniclaw-persist",
+    "crates/cliniclaw-kernel",
     "crates/cliniclaw-agents",
     "crates/cliniclaw-api",
+    "crates/cliniclaw-tui",
 ]
 
 [workspace.package]
@@ -35,6 +37,9 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 # Storage
 sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "postgres", "uuid", "chrono"] }
 
+# Async traits
+async-trait = "0.1"
+
 # Utilities
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
@@ -47,4 +52,5 @@ base64 = "0.22"
 cliniclaw-fhir = { path = "crates/cliniclaw-fhir" }
 cliniclaw-policy = { path = "crates/cliniclaw-policy" }
 cliniclaw-persist = { path = "crates/cliniclaw-persist" }
+cliniclaw-kernel = { path = "crates/cliniclaw-kernel" }
 cliniclaw-agents = { path = "crates/cliniclaw-agents" }

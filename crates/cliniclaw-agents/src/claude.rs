@@ -1,6 +1,8 @@
+use async_trait::async_trait;
 use secrecy::{ExposeSecret, SecretString};
 
 use crate::error::AgentError;
+use crate::llm::LlmCapability;
 
 /// Structured prompt envelope for Claude API calls.
 ///
@@ -42,6 +44,16 @@ pub struct ClaudeCapability {
     max_tokens: u32,
 }
 
+impl std::fmt::Debug for ClaudeCapability {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ClaudeCapability")
+            .field("model", &self.model)
+            .field("max_tokens", &self.max_tokens)
+            .field("api_key", &"[REDACTED]")
+            .finish()
+    }
+}
+
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ClaudeResponse {
     pub content: Vec<ContentBlock>,
@@ -57,9 +69,16 @@ pub struct ContentBlock {
 }
 
 impl ClaudeCapability {
+    /// Default timeout for Claude API calls (120 seconds).
+    const DEFAULT_TIMEOUT_SECS: u64 = 120;
+
     pub fn new(api_key: SecretString, model: impl Into<String>, max_tokens: u32) -> Self {
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(Self::DEFAULT_TIMEOUT_SECS))
+            .build()
+            .expect("failed to build HTTP client");
         Self {
-            client: reqwest::Client::new(),
+            client,
             api_key,
             model: model.into(),
             max_tokens,
@@ -125,5 +144,13 @@ impl ClaudeCapability {
         );
 
         Ok(text)
+    }
+}
+
+#[async_trait]
+impl LlmCapability for ClaudeCapability {
+    async fn call(&self, prompt: &PromptEnvelope) -> Result<String, AgentError> {
+        // Delegate to the inherent method
+        self.call(prompt).await
     }
 }

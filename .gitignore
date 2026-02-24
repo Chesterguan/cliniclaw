@@ -38,5 +38,12 @@ tarpaulin-report.html
 # Generated docs (run `cargo doc` to regenerate)
 /doc/
 
+# Web frontend build artifacts
+web/.next/
+web/node_modules/
+
+# Demo recordings (keep .gif for README, skip large video)
+demo.mp4
+
 # Test fixtures with real PHI (never commit)
 tests/fixtures/real/

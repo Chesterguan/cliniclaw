@@ -24,8 +24,11 @@ uuid = { workspace = true }
 chrono = { workspace = true }
 secrecy = { workspace = true }
 reqwest = { workspace = true }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures-util = "0.3"
 
 cliniclaw-fhir = { workspace = true }
 cliniclaw-policy = { workspace = true }
 cliniclaw-persist = { workspace = true }
+cliniclaw-kernel = { workspace = true }
 cliniclaw-agents = { workspace = true }

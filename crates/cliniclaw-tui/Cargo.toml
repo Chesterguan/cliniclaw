@@ -1,0 +1,23 @@
+[package]
+name = "cliniclaw-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Terminal UI demo client for ClinicClaw"
+
+[[bin]]
+name = "cliniclaw-tui"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = "0.30"
+crossterm = { version = "0.28", features = ["event-stream"] }
+reqwest-eventsource = "0.6"
+reqwest = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+cliniclaw-kernel = { workspace = true }
+futures = "0.3"
+anyhow = { workspace = true }

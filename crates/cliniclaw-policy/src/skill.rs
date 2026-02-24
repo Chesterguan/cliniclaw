@@ -238,15 +238,22 @@ impl ClinicalSkillSpec {
 
     /// Compute the canonical SHA-256 hash of this skill definition.
     /// Excludes `description` per PSDL hashing spec.
+    /// Sorts `allowed_roles` and `required_capabilities` for deterministic hashing
+    /// regardless of TOML declaration order.
     pub fn compute_spec_hash(&self) -> String {
+        let mut sorted_roles = self.allowed_roles.clone();
+        sorted_roles.sort();
+        let mut sorted_caps = self.required_capabilities.clone();
+        sorted_caps.sort();
+
         let canonical = serde_json::json!({
             "id": self.id,
             "name": self.name,
             "version": self.version,
             "severity": self.severity,
-            "allowed_roles": self.allowed_roles,
+            "allowed_roles": sorted_roles,
             "action": self.action,
-            "required_capabilities": self.required_capabilities,
+            "required_capabilities": sorted_caps,
             "audit": {
                 "intent": self.audit.intent,
                 "rationale": self.audit.rationale,

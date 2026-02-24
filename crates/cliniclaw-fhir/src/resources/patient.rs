@@ -27,7 +27,25 @@ pub struct Patient {
     pub identifier: Option<Vec<Identifier>>,
 
     #[serde(rename = "deceasedBoolean", skip_serializing_if = "Option::is_none")]
-    pub deceased: Option<bool>,
+    pub deceased_boolean: Option<bool>,
+
+    /// FHIR allows deceasedDateTime as an alternative to deceasedBoolean.
+    #[serde(rename = "deceasedDateTime", skip_serializing_if = "Option::is_none")]
+    pub deceased_date_time: Option<String>,
+}
+
+impl Patient {
+    /// Returns whether the patient is deceased, considering both
+    /// `deceasedBoolean` and `deceasedDateTime` (presence implies deceased).
+    pub fn is_deceased(&self) -> Option<bool> {
+        if let Some(b) = self.deceased_boolean {
+            return Some(b);
+        }
+        if self.deceased_date_time.is_some() {
+            return Some(true);
+        }
+        None
+    }
 }
 
 impl Default for Patient {
@@ -40,7 +58,8 @@ impl Default for Patient {
             gender: None,
             birth_date: None,
             identifier: None,
-            deceased: None,
+            deceased_boolean: None,
+            deceased_date_time: None,
         }
     }
 }

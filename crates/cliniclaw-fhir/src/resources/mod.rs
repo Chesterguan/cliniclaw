@@ -15,6 +15,6 @@ pub use patient::Patient;
 pub use practitioner::Practitioner;
 pub use service_request::ServiceRequest;
 pub use types::{
-    Attachment, CodeableConcept, Coding, DosageInstruction, HumanName, Identifier, Period,
-    Quantity, Reference,
+    Attachment, CodeableConcept, Coding, DoseAndRate, DosageInstruction, HumanName, Identifier,
+    Period, Quantity, Reference,
 };

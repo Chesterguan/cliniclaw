@@ -1,11 +1,15 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use base64::Engine as _;
 use cliniclaw_fhir::{Attachment, CodeableConcept, Coding, DiagnosticReport, Reference};
 use cliniclaw_persist::{sha256_hash, AuditEvent};
 use cliniclaw_policy::{ActionContext, Capability, PolicyDecision, PolicyEngine};
 
-use crate::{AgentError, ClaudeCapability, PromptEnvelope};
+use cliniclaw_kernel::Confidence;
+
+use crate::llm::LlmCapability;
+use crate::{AgentError, PromptEnvelope};
 
 #[derive(Debug, Clone)]
 pub struct AmbientDocInput {
@@ -60,6 +64,7 @@ impl AmbientDocInput {
 #[derive(Debug, Clone)]
 pub struct AmbientDocOutput {
     pub report: DiagnosticReport,
+    pub confidence: Confidence,
     pub audit_event: AuditEvent,
     pub policy_decision: PolicyDecision,
     /// SHA-256 hash of the matched skill spec (if any)
@@ -67,12 +72,12 @@ pub struct AmbientDocOutput {
 }
 
 pub struct AmbientDocAgent {
-    claude: ClaudeCapability,
+    llm: Arc<dyn LlmCapability>,
 }
 
 impl AmbientDocAgent {
-    pub fn new(claude: ClaudeCapability) -> Self {
-        Self { claude }
+    pub fn new(llm: Arc<dyn LlmCapability>) -> Self {
+        Self { llm }
     }
 
     /// Run the ambient documentation workflow.
@@ -85,7 +90,6 @@ impl AmbientDocAgent {
         &self,
         input: &AmbientDocInput,
         policy_engine: &PolicyEngine,
-        previous_audit_hash: &str,
     ) -> Result<AmbientDocOutput, AgentError> {
         // Step 1: Build context and run skill-aware policy evaluation
         let context = self.build_context(input);
@@ -121,8 +125,8 @@ impl AmbientDocAgent {
         // Step 2: Build de-identified prompt
         let prompt = self.build_prompt(input);
 
-        // Step 3: Call Claude API
-        let response_text = self.claude.call(&prompt).await?;
+        // Step 3: Call LLM
+        let response_text = self.llm.call(&prompt).await?;
 
         // Step 4: Build FHIR DiagnosticReport
         let report = self.build_report(input, &response_text);
@@ -144,10 +148,10 @@ impl AmbientDocAgent {
             &input.practitioner_id,
             Some(input.patient_id.clone()),
             "ambient_doc.generate_note",
-            &format!("{:?}", skill_eval.decision),
+            &skill_eval.decision.to_string(),
             sha256_hash(&input_descriptor),
             sha256_hash(&output_descriptor),
-            previous_audit_hash,
+            "", // previous_hash assigned atomically by SqliteAuditStore::append
         );
 
         tracing::info!(
@@ -156,8 +160,12 @@ impl AmbientDocAgent {
             "ambient note generated and verified successfully"
         );
 
+        // Compute confidence based on note content quality signals
+        let confidence = self.compute_confidence(&response_text);
+
         Ok(AmbientDocOutput {
             report,
+            confidence,
             audit_event,
             policy_decision: skill_eval.decision,
             spec_hash: skill_eval.spec_hash,
@@ -257,6 +265,47 @@ impl AmbientDocAgent {
                 title: Some("AI-generated SOAP note".to_string()),
             }]),
         }
+    }
+
+    fn compute_confidence(&self, response_text: &str) -> Confidence {
+        let mut score = 0.5;
+        let mut factors = Vec::new();
+
+        // Check if response parses as valid JSON (structured output)
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response_text) {
+            factors.push("valid_json".to_string());
+            score += 0.1;
+
+            // Check for SOAP section completeness
+            let sections = ["subjective", "objective", "assessment", "plan"];
+            let present: usize = sections
+                .iter()
+                .filter(|s| parsed.get(s).and_then(|v| v.as_str()).map_or(false, |t| !t.is_empty()))
+                .count();
+            if present == 4 {
+                factors.push("complete_soap".to_string());
+                score += 0.2;
+            } else if present >= 2 {
+                factors.push("partial_soap".to_string());
+                score += 0.1;
+            }
+
+            // Check for ICD-10 codes
+            if let Some(codes) = parsed.get("icd10_codes").and_then(|v| v.as_array()) {
+                if !codes.is_empty() {
+                    factors.push("has_icd10_codes".to_string());
+                    score += 0.1;
+                }
+            }
+        }
+
+        // Note length heuristic
+        if response_text.len() > 200 {
+            factors.push("substantive_length".to_string());
+            score += 0.1;
+        }
+
+        Confidence::new(score, factors)
     }
 
     fn verify_output(&self, report: &DiagnosticReport) -> Result<(), AgentError> {

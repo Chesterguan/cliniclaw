@@ -38,7 +38,8 @@ impl AuditEvent {
         let previous_hash = previous_hash.into();
 
         let event_hash = Self::compute_hash(
-            &id, &timestamp, &actor_id, &action,
+            &id, &timestamp, &actor_id, &patient_id,
+            &action, &policy_decision,
             &input_hash, &output_hash, &previous_hash,
         );
 
@@ -62,11 +63,15 @@ impl AuditEvent {
         self
     }
 
-    fn compute_hash(
+    /// Compute SHA-256 hash of all security-relevant audit event fields.
+    /// Includes patient_id and policy_decision for tamper detection.
+    pub fn compute_hash(
         id: &Uuid,
         timestamp: &DateTime<Utc>,
         actor_id: &str,
+        patient_id: &Option<String>,
         action: &str,
+        policy_decision: &str,
         input_hash: &str,
         output_hash: &str,
         previous_hash: &str,
@@ -75,11 +80,23 @@ impl AuditEvent {
         h.update(id.to_string().as_bytes());
         h.update(timestamp.to_rfc3339().as_bytes());
         h.update(actor_id.as_bytes());
+        h.update(patient_id.as_deref().unwrap_or("").as_bytes());
         h.update(action.as_bytes());
+        h.update(policy_decision.as_bytes());
         h.update(input_hash.as_bytes());
         h.update(output_hash.as_bytes());
         h.update(previous_hash.as_bytes());
         format!("{:x}", h.finalize())
+    }
+
+    /// Recompute and verify the event hash from stored fields.
+    pub fn verify_hash(&self) -> bool {
+        let expected = Self::compute_hash(
+            &self.id, &self.timestamp, &self.actor_id, &self.patient_id,
+            &self.action, &self.policy_decision,
+            &self.input_hash, &self.output_hash, &self.previous_hash,
+        );
+        self.event_hash == expected
     }
 }
 

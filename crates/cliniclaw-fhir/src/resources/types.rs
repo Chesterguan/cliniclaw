@@ -100,4 +100,16 @@ pub struct DosageInstruction {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub route: Option<CodeableConcept>,
+
+    #[serde(rename = "doseAndRate", skip_serializing_if = "Option::is_none")]
+    pub dose_and_rate: Option<Vec<DoseAndRate>>,
+
+    #[serde(rename = "asNeededBoolean", skip_serializing_if = "Option::is_none")]
+    pub as_needed_boolean: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoseAndRate {
+    #[serde(rename = "doseQuantity", skip_serializing_if = "Option::is_none")]
+    pub dose_quantity: Option<Quantity>,
 }

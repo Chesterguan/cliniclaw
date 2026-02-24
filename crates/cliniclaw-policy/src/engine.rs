@@ -139,59 +139,55 @@ impl PolicyEngine {
         // Highest priority first
         matched.sort_by(|a, b| b.priority.cmp(&a.priority));
 
-        let rule = matched[0];
-
-        // Check required capabilities
-        for cap in &rule.required_capabilities {
-            if !context.capabilities.iter().any(|c| c == cap) {
-                warn!(
-                    action = %context.action,
-                    actor_id = %context.actor_id,
-                    missing_capability = %cap,
-                    rule = %rule.name,
-                    "policy deny: actor missing required capability"
-                );
-                return PolicyDecision::Deny;
-            }
-        }
-
-        // Check conditions
-        for (key, expected) in &rule.conditions {
-            match context.properties.get(key) {
-                Some(actual) if actual == expected => {}
-                Some(actual) => {
-                    warn!(
-                        action = %context.action,
-                        actor_id = %context.actor_id,
-                        condition_key = %key,
-                        expected = %expected,
-                        actual = %actual,
-                        rule = %rule.name,
-                        "policy deny: condition not met"
-                    );
-                    return PolicyDecision::Deny;
-                }
-                None => {
-                    warn!(
-                        action = %context.action,
-                        actor_id = %context.actor_id,
-                        condition_key = %key,
-                        rule = %rule.name,
-                        "policy deny: required condition key absent from context"
-                    );
-                    return PolicyDecision::Deny;
+        // Iterate through rules in priority order. A rule only applies if ALL
+        // its conditions and capability requirements are met. If a rule's
+        // conditions don't match, skip to the next rule (lower priority).
+        'rules: for rule in &matched {
+            // Check required capabilities
+            let mut caps_ok = true;
+            for cap in &rule.required_capabilities {
+                if !context.capabilities.iter().any(|c| c == cap) {
+                    caps_ok = false;
+                    break;
                 }
             }
+            if !caps_ok {
+                continue 'rules;
+            }
+
+            // Check conditions
+            let mut conditions_ok = true;
+            for (key, expected) in &rule.conditions {
+                match context.properties.get(key) {
+                    Some(actual) if actual == expected => {}
+                    _ => {
+                        conditions_ok = false;
+                        break;
+                    }
+                }
+            }
+            if !conditions_ok {
+                continue 'rules;
+            }
+
+            // All conditions and capabilities match — apply this rule
+            info!(
+                action = %context.action,
+                actor_id = %context.actor_id,
+                rule = %rule.name,
+                decision = ?rule.decision,
+                "policy decision"
+            );
+            return rule.decision.clone();
         }
 
-        info!(
+        // No rule fully matched — deny by default
+        warn!(
             action = %context.action,
             actor_id = %context.actor_id,
-            rule = %rule.name,
-            decision = ?rule.decision,
-            "policy decision"
+            "policy deny: no rule conditions fully matched"
         );
-        rule.decision.clone()
+        PolicyDecision::Deny
     }
 
     /// Skill-aware evaluation. Checks skill metadata (role, capability tokens,

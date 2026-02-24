@@ -10,6 +10,14 @@ pub struct SqliteAuditStore {
 }
 
 impl SqliteAuditStore {
+    /// Returns a reference to the underlying connection pool.
+    ///
+    /// Used by the kernel's `SqliteWorkspaceStore` to share the same
+    /// database connection (workspaces and turns live alongside audit_events).
+    pub fn pool(&self) -> &SqlitePool {
+        &self.pool
+    }
+
     pub async fn new(database_url: &str) -> Result<Self, PersistError> {
         let pool = SqlitePool::connect(database_url).await?;
         let store = Self { pool };
@@ -50,9 +58,15 @@ impl SqliteAuditStore {
         Ok(())
     }
 
-    /// Atomically verify chain integrity and append. Uses BEGIN IMMEDIATE
-    /// to acquire a write lock before reading latest_hash, preventing TOCTOU races.
-    pub async fn append(&self, event: &AuditEvent) -> Result<(), PersistError> {
+    /// Atomically chain-link and append an audit event.
+    ///
+    /// Uses a SQLite IMMEDIATE transaction to atomically read the latest hash,
+    /// recompute the event's chain fields, and insert. This eliminates TOCTOU
+    /// races — the caller does NOT need to pre-fetch `latest_hash`.
+    ///
+    /// The event's `previous_hash` and `event_hash` are recomputed inside the
+    /// transaction to guarantee they reflect the actual chain state.
+    pub async fn append(&self, event: &mut AuditEvent) -> Result<(), PersistError> {
         let metadata_json = event
             .metadata
             .as_ref()
@@ -61,8 +75,6 @@ impl SqliteAuditStore {
 
         let mut tx = self.pool.begin().await?;
 
-        // BEGIN IMMEDIATE is the default for sqlx sqlite write transactions —
-        // this holds the write lock for the duration of the transaction.
         let latest: Option<(String,)> = sqlx::query_as(
             "SELECT event_hash FROM audit_events ORDER BY timestamp DESC, rowid DESC LIMIT 1",
         )
@@ -70,12 +82,20 @@ impl SqliteAuditStore {
         .await?;
 
         let latest_hash = latest.map(|r| r.0).unwrap_or_default();
-        if event.previous_hash != latest_hash {
-            return Err(PersistError::ChainIntegrity {
-                expected: latest_hash,
-                actual: event.previous_hash.clone(),
-            });
-        }
+
+        // Atomically assign the correct previous_hash and recompute event_hash
+        event.previous_hash = latest_hash;
+        event.event_hash = AuditEvent::compute_hash(
+            &event.id,
+            &event.timestamp,
+            &event.actor_id,
+            &event.patient_id,
+            &event.action,
+            &event.policy_decision,
+            &event.input_hash,
+            &event.output_hash,
+            &event.previous_hash,
+        );
 
         sqlx::query(
             "INSERT INTO audit_events (id, timestamp, actor_id, patient_id, action, policy_decision, input_hash, output_hash, previous_hash, event_hash, metadata)
@@ -165,12 +185,21 @@ impl SqliteAuditStore {
 
         let mut expected_previous = String::new();
         for event in &events {
+            // Check chain linkage
             if event.previous_hash != expected_previous {
                 tracing::warn!(
                     event_id = %event.id,
                     expected = %expected_previous,
                     actual = %event.previous_hash,
-                    "chain integrity broken"
+                    "chain linkage broken"
+                );
+                return Ok(false);
+            }
+            // Recompute hash to detect field tampering
+            if !event.verify_hash() {
+                tracing::warn!(
+                    event_id = %event.id,
+                    "event hash does not match recomputed hash — possible tampering"
                 );
                 return Ok(false);
             }
@@ -230,7 +259,7 @@ mod tests {
     #[tokio::test]
     async fn append_and_get() {
         let store = test_store().await;
-        let event = AuditEvent::new(
+        let mut event = AuditEvent::new(
             "practitioner-1",
             Some("patient-1".to_string()),
             "ambient_note_generated",
@@ -241,43 +270,26 @@ mod tests {
         );
         let event_id = event.id;
 
-        store.append(&event).await.unwrap();
+        store.append(&mut event).await.unwrap();
 
         let fetched = store.get(event_id).await.unwrap().expect("event should exist");
         assert_eq!(fetched.id, event_id);
         assert_eq!(fetched.action, "ambient_note_generated");
         assert_eq!(fetched.actor_id, "practitioner-1");
-    }
-
-    #[tokio::test]
-    async fn chain_integrity_violation() {
-        let store = test_store().await;
-        let event = AuditEvent::new(
-            "practitioner-1",
-            None,
-            "test_action",
-            "allow",
-            "ih",
-            "oh",
-            "wrong-previous-hash",
-        );
-
-        let result = store.append(&event).await;
-        assert!(matches!(result, Err(PersistError::ChainIntegrity { .. })));
+        // Verify tamper detection works on fetched events
+        assert!(fetched.verify_hash());
     }
 
     #[tokio::test]
     async fn chain_of_two_events() {
         let store = test_store().await;
 
-        let e1 = AuditEvent::new("actor-1", None, "action_1", "allow", "ih1", "oh1", "");
-        store.append(&e1).await.unwrap();
+        let mut e1 = AuditEvent::new("actor-1", None, "action_1", "allow", "ih1", "oh1", "");
+        store.append(&mut e1).await.unwrap();
 
-        let latest = store.latest_hash().await.unwrap();
-        assert_eq!(latest, e1.event_hash);
-
-        let e2 = AuditEvent::new("actor-1", None, "action_2", "allow", "ih2", "oh2", &latest);
-        store.append(&e2).await.unwrap();
+        // Append auto-assigns previous_hash, no need to pre-fetch
+        let mut e2 = AuditEvent::new("actor-1", None, "action_2", "allow", "ih2", "oh2", "");
+        store.append(&mut e2).await.unwrap();
 
         assert!(store.verify_chain().await.unwrap());
     }
@@ -286,11 +298,11 @@ mod tests {
     async fn get_by_patient() {
         let store = test_store().await;
 
-        let e1 = AuditEvent::new("actor-1", Some("patient-A".to_string()), "a1", "allow", "ih", "oh", "");
-        store.append(&e1).await.unwrap();
+        let mut e1 = AuditEvent::new("actor-1", Some("patient-A".to_string()), "a1", "allow", "ih", "oh", "");
+        store.append(&mut e1).await.unwrap();
 
-        let e2 = AuditEvent::new("actor-1", Some("patient-B".to_string()), "a2", "allow", "ih", "oh", &e1.event_hash);
-        store.append(&e2).await.unwrap();
+        let mut e2 = AuditEvent::new("actor-1", Some("patient-B".to_string()), "a2", "allow", "ih", "oh", "");
+        store.append(&mut e2).await.unwrap();
 
         let patient_a_events = store.get_by_patient("patient-A").await.unwrap();
         assert_eq!(patient_a_events.len(), 1);
@@ -301,11 +313,11 @@ mod tests {
     async fn get_by_action() {
         let store = test_store().await;
 
-        let e1 = AuditEvent::new("actor-1", None, "note_gen", "allow", "ih", "oh", "");
-        store.append(&e1).await.unwrap();
+        let mut e1 = AuditEvent::new("actor-1", None, "note_gen", "allow", "ih", "oh", "");
+        store.append(&mut e1).await.unwrap();
 
-        let e2 = AuditEvent::new("actor-1", None, "order_prop", "allow", "ih", "oh", &e1.event_hash);
-        store.append(&e2).await.unwrap();
+        let mut e2 = AuditEvent::new("actor-1", None, "order_prop", "allow", "ih", "oh", "");
+        store.append(&mut e2).await.unwrap();
 
         let note_events = store.get_by_action("note_gen").await.unwrap();
         assert_eq!(note_events.len(), 1);

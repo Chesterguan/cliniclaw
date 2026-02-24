@@ -5,3 +5,13 @@ pub enum PolicyDecision {
     Deny,
     RequireApproval,
 }
+
+impl std::fmt::Display for PolicyDecision {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PolicyDecision::Allow => write!(f, "allow"),
+            PolicyDecision::Deny => write!(f, "deny"),
+            PolicyDecision::RequireApproval => write!(f, "require_approval"),
+        }
+    }
+}

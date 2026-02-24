@@ -1,0 +1,43 @@
+# ClinicClaw — Full stack demo
+# Usage: docker compose up
+# Access: http://localhost:3001
+#
+# Runs in MOCK mode by default (no external dependencies needed).
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - CLINICLAW_MOCK=true
+      - LISTEN_ADDR=0.0.0.0:3000
+      - DATABASE_URL=sqlite:/data/cliniclaw.sqlite
+      - RUST_LOG=cliniclaw=info,tower_http=info
+    volumes:
+      - api-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - HOSTNAME=0.0.0.0
+      - API_URL=http://api:3000
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  api-data:

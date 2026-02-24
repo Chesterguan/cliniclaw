@@ -33,8 +33,10 @@ impl From<cliniclaw_agents::AgentError> for ApiError {
             cliniclaw_agents::AgentError::PolicyDenied(_) => {
                 ApiError::new(StatusCode::FORBIDDEN, err.to_string())
             }
-            cliniclaw_agents::AgentError::RequiresApproval { .. } => {
-                ApiError::new(StatusCode::FORBIDDEN, err.to_string())
+            cliniclaw_agents::AgentError::RequiresApproval { ref action } => {
+                ApiError::new(StatusCode::CONFLICT, format!(
+                    "action '{}' requires physician approval before proceeding", action
+                ))
             }
             cliniclaw_agents::AgentError::VerificationFailed(_) => {
                 ApiError::new(StatusCode::UNPROCESSABLE_ENTITY, err.to_string())
@@ -86,6 +88,27 @@ impl From<cliniclaw_persist::PersistError> for ApiError {
     fn from(err: cliniclaw_persist::PersistError) -> Self {
         tracing::error!(error = %err, "audit store error");
         ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+    }
+}
+
+impl From<cliniclaw_kernel::KernelError> for ApiError {
+    fn from(err: cliniclaw_kernel::KernelError) -> Self {
+        match &err {
+            cliniclaw_kernel::KernelError::WorkspaceNotFound(_)
+            | cliniclaw_kernel::KernelError::TurnNotFound(_) => {
+                ApiError::new(StatusCode::NOT_FOUND, err.to_string())
+            }
+            cliniclaw_kernel::KernelError::InvalidTransition { .. } => {
+                ApiError::new(StatusCode::CONFLICT, err.to_string())
+            }
+            cliniclaw_kernel::KernelError::WorkspaceClosed(_) => {
+                ApiError::new(StatusCode::CONFLICT, err.to_string())
+            }
+            _ => {
+                tracing::error!(error = %err, "kernel error");
+                ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+            }
+        }
     }
 }
 

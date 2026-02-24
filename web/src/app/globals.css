@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/*
+ * ClinicClaw Clinical Color System
+ *
+ * Follows the VERITAS principle of explicit over implicit.
+ * Every color token maps to a specific clinical meaning — not decoration.
+ *
+ * Red    = critical / hard stop / danger / allergy
+ * Amber  = warning / pending approval / overdue
+ * Blue   = info / metadata / CDS guidance
+ * Green  = verified / NKDA / signed / success
+ * Slate  = structural chrome (sidebar, headers)
+ * Purple = DNR/DNI flags (reserved for advance directives)
+ */
+
+:root {
+  /* Clinical alert colors — use these via var() in custom components */
+  --clinical-critical: #dc2626;   /* red-600 */
+  --clinical-warning: #f59e0b;    /* amber-500 */
+  --clinical-info: #3b82f6;       /* blue-500 */
+  --clinical-success: #16a34a;    /* green-600 */
+  --clinical-dnr: #9333ea;        /* purple-600 — reserved */
+
+  /* Structural chrome */
+  --sidebar-bg: #0f172a;          /* slate-900 */
+  --sidebar-border: #1e293b;      /* slate-800 */
+  --content-bg: #ffffff;
+
+  /* Typography scale */
+  --font-clinical: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono-clinical: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+}
+
+/* Base reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Prevent font size inflation on mobile */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-clinical);
+  background-color: #f8fafc; /* slate-50 */
+  color: #0f172a;             /* slate-900 */
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Clinical mono — used for hashes, IDs, MRNs */
+.font-clinical-mono {
+  font-family: var(--font-mono-clinical);
+  font-size: 0.75rem;
+  letter-spacing: 0.025em;
+}
+
+/* Demo watermark — required on all patient-facing data */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background-color: #fef3c7; /* amber-100 */
+  color: #92400e;             /* amber-800 */
+  border: 1px solid #fcd34d; /* amber-300 */
+  border-radius: 0.25rem;
+}
+
+/* Pulsing animation for processing state */
+@keyframes clinical-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-clinical-pulse {
+  animation: clinical-pulse 1.5s ease-in-out infinite;
+}
+
+/* Scrollbar styling for clinical data panels */
+.clinical-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.clinical-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9; /* slate-100 */
+}
+
+.clinical-scroll::-webkit-scrollbar-thumb {
+  background: #94a3b8; /* slate-400 */
+  border-radius: 3px;
+}
+
+.clinical-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b; /* slate-500 */
+}
+
+/* Slide-in animation for activity stream events */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.2s ease-out;
+}
