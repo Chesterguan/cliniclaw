@@ -149,10 +149,9 @@ fn draw_activity(frame: &mut Frame, app: &mut App, area: Rect) {
                 _ => Color::Green,
             };
 
-            // Show separator for new agent runs
+            // Show separator between agent runs
             let is_new_run = i > 0
-                && matches!(ev.event_type, AgentEventType::AgentStarted)
-                && app.events[i - 1].agent_name != ev.agent_name;
+                && matches!(ev.event_type, AgentEventType::AgentStarted);
 
             let delta = base_ts
                 .map(|b| format!("+{}ms", time_delta_ms(&b, &ev.timestamp)))

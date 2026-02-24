@@ -10,10 +10,8 @@ Set Padding 20
 Set TypingSpeed 50ms
 
 # Start the API server in background, suppress output
+# Run this tape from the project root: vhs demo.tape
 Hide
-Type "cd /Volumes/extraSupply/cliniclaw"
-Enter
-Sleep 500ms
 Type "CLINICLAW_MOCK=true ./target/debug/cliniclaw > /dev/null 2>&1 &"
 Enter
 Sleep 3s

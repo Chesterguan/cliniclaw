@@ -2,7 +2,7 @@
 
 An AI-native, FHIR R4-native Hospital Information System. Every AI agent action is policy-gated, audited, and verifiable.
 
-ClinicClaw is the intelligence layer on top of FHIR — not a FHIR server, not an EHR clone. It solves problems that legacy HIS systems fundamentally cannot: ambient clinical documentation, intelligent order entry, and automated prior authorization, all governed by the [VERITAS](https://github.com/anthropics/veritas) trust model.
+ClinicClaw is the intelligence layer on top of FHIR — not a FHIR server, not an EHR clone. It solves problems that legacy HIS systems fundamentally cannot: ambient clinical documentation, intelligent order entry, and automated prior authorization, all governed by the VERITAS trust model.
 
 ## Demo
 

@@ -81,16 +81,17 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                     if key.kind != crossterm::event::KeyEventKind::Press {
                         continue;
                     }
-                    match key.code {
-                        KeyCode::Char('q') | KeyCode::Esc => {
+                    match (key.code, key.modifiers) {
+                        (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => {
                             app.should_quit = true;
                         }
-                        KeyCode::Char('c')
-                            if key.modifiers.contains(KeyModifiers::CONTROL) =>
-                        {
+                        (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => {
                             app.should_quit = true;
                         }
-                        KeyCode::Char('n') => {
+                        (KeyCode::Char('c'), _) => {
+                            app.clear();
+                        }
+                        (KeyCode::Char('n'), _) => {
                             app.triggering = Some("Triggering note...".into());
                             app.error_message = None;
                             event::trigger_note(
@@ -99,7 +100,7 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                                 encounter_id.clone(),
                             );
                         }
-                        KeyCode::Char('o') => {
+                        (KeyCode::Char('o'), _) => {
                             app.triggering = Some("Triggering order...".into());
                             app.error_message = None;
                             event::trigger_order(
@@ -108,7 +109,7 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                                 encounter_id.clone(),
                             );
                         }
-                        KeyCode::Char('p') => {
+                        (KeyCode::Char('p'), _) => {
                             app.triggering = Some("Triggering prior auth...".into());
                             app.error_message = None;
                             event::trigger_prior_auth(
@@ -117,16 +118,13 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                                 encounter_id.clone(),
                             );
                         }
-                        KeyCode::Char('c') => {
-                            app.clear();
-                        }
-                        KeyCode::Up | KeyCode::Char('k') => {
+                        (KeyCode::Up, _) | (KeyCode::Char('k'), _) => {
                             app.scroll_up();
                         }
-                        KeyCode::Down | KeyCode::Char('j') => {
+                        (KeyCode::Down, _) | (KeyCode::Char('j'), _) => {
                             app.scroll_down();
                         }
-                        KeyCode::End | KeyCode::Char('G') => {
+                        (KeyCode::End, _) | (KeyCode::Char('G'), _) => {
                             app.jump_to_bottom();
                         }
                         _ => {}
