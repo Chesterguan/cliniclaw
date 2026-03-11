@@ -1,10 +1,10 @@
 # ClinicClaw — Project Instructions
 
-> Last updated: 2026-02-18
+> Last updated: 2026-03-11
 
 ## What ClinicClaw Is
 
-An AI-native, FHIR R4-native Hospital Information System (HIS) that uses VERITAS as its trust and governance layer. Every AI agent action is policy-bound, audited, and verifiable. Real LLM calls (Claude API). Real FHIR data model. Real clinical workflows.
+An AI-native, FHIR R4-native Hospital Information System (HIS) that uses VERITAS as its trust and governance layer. Every AI agent action is policy-bound, audited, and verifiable. Pluggable LLM backend (Claude API, Ollama, mock). Real FHIR data model. Real clinical workflows.
 
 Think: what a modern HIS looks like when AI is a first-class citizen, not an afterthought bolted onto a legacy system.
 
@@ -19,49 +19,83 @@ Think: what a modern HIS looks like when AI is a first-class citizen, not an aft
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│              ClinicClaw Agents                        │
-│   AmbientDocAgent │ OrderEntryAgent │ PriorAuthAgent │
-├─────────────────────────────────────────────────────┤
-│              VERITAS Trust Layer                      │
-│   Policy Engine │ Audit Trail │ Verifier │ Caps      │
-├─────────────────────────────────────────────────────┤
-│              FHIR Data Layer (Medplum)                │
-│   Patient │ Encounter │ MedicationRequest │ ...      │
-├─────────────────────────────────────────────────────┤
-│              AI Layer (Claude API)                    │
-│   Note generation │ Order parsing │ Clinical reasoning│
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                  ClinicClaw Agents (8)                     │
+│  Triage │ Nurse │ AmbientDoc │ OrderEntry │ LabReview    │
+│  PharmacyReview │ PriorAuth │ DischargePlan              │
+├──────────────────────────────────────────────────────────┤
+│                  VERITAS Trust Layer                       │
+│  OPA Rego Policy Engine │ Audit Chain │ Capabilities      │
+├──────────────────────────────────────────────────────────┤
+│                  FHIR Data Layer                          │
+│  Patient │ Encounter │ MedicationRequest │ Observation    │
+├──────────────────────────────────────────────────────────┤
+│                  Pluggable AI Layer                        │
+│  Claude API │ Ollama (local) │ Mock (deterministic)       │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ## Design Principles
 
 1. VERITAS governs all AI actions — no agent logic runs without a policy gate
 2. FHIR R4 as the native data model — no proprietary schemas
-3. Real LLM calls — Claude API for actual clinical intelligence
+3. Pluggable LLM — Claude API, Ollama, or mock for deterministic testing
 4. Async-first — tokio runtime (unlike VERITAS core which is sync)
 5. Pluggable FHIR backend — Medplum by default, any FHIR R4 server works
 6. HIPAA-aware by design — audit everything, minimize PHI surface area
 7. Agent-first — every clinical workflow is expressed as a policy-bound agent
+8. Human-in-the-loop — approval gates enforced by policy, not UI convention
 
-## Planned Modules (crates)
+## Crates
 
 | Crate | Purpose |
 |-------|---------|
-| `cliniclaw-fhir` | FHIR R4 client + resource type definitions |
-| `cliniclaw-agents` | AI agents (ambient doc, order entry, prior auth) |
-| `cliniclaw-policy` | Clinical-grade HIPAA/HITECH policy rules (TOML) |
-| `cliniclaw-api` | axum HTTP API server |
-| `cliniclaw-persist` | SQLite/Postgres persistence layer (audit store) |
+| `cliniclaw-fhir` | FHIR R4 client, resource types, Synthea bundle importer |
+| `cliniclaw-agents` | 8 AI agents + LlmCapability trait (Claude/Ollama/Mock) |
+| `cliniclaw-policy` | OPA Rego policy engine (regorus) + clinical skill metadata (TOML) |
+| `cliniclaw-api` | axum HTTP API server (20+ routes, SSE events, demo orchestrator) |
+| `cliniclaw-persist` | SQLite/Postgres audit store with SHA-256 hash chain |
+| `cliniclaw-kernel` | Workspace/turn store, AgentEvent system, EventEmitter |
+| `cliniclaw-tui` | Terminal UI with hospital view, live metrics, event detail |
 
 ## Key Stack
 
 - Language: Rust (async, tokio)
 - FHIR backend: Medplum (self-hosted or cloud) via REST API
-- AI: Claude API (Anthropic) via reqwest
+- AI: Claude API / Ollama / Mock via `LlmCapability` trait
+- Policy: OPA Rego via regorus 0.2
 - Storage: SQLite (dev) / PostgreSQL (prod) via sqlx
 - HTTP server: axum 0.7
+- Web: Next.js 15, Tailwind CSS, lucide-react, react-three-fiber (3D)
 - Trust layer: VERITAS execution model re-implemented for async I/O
+
+## Running
+
+```bash
+# Backend (port 3001)
+CLINICLAW_MOCK=true LISTEN_ADDR=0.0.0.0:3001 cargo run -p cliniclaw-api
+
+# Frontend (port 3000)
+cd web && npm run dev
+
+# With Ollama
+LLM_BACKEND=ollama OLLAMA_MODEL=mistral-small LISTEN_ADDR=0.0.0.0:3001 cargo run -p cliniclaw-api
+
+# With Synthea data
+SYNTHEA_DIR=data/synthea/fhir CLINICLAW_MOCK=true LISTEN_ADDR=0.0.0.0:3001 cargo run -p cliniclaw-api
+```
+
+## Web Pages
+
+| Route | Purpose |
+|-------|---------|
+| `/` | Clinician worklist |
+| `/demo` | Scripted chest pain demo (dual-pane, 2 approval gates) |
+| `/hospital` | Dynamic multi-patient simulation (swim lanes) |
+| `/hospital/3d` | 3D hospital floor + network graph |
+| `/audit` | Audit trail viewer |
+| `/admin` | Admin dashboard |
+| `/chart/[patientId]/*` | Patient chart (notes, orders, prior-auth, review) |
 
 ## VERITAS Relationship
 
@@ -96,6 +130,7 @@ Evidence over intelligence. Control over autonomy.
 - `sqlx = "0.8"` (NOT 0.7)
 - `reqwest = "0.12"` with `rustls-tls`, no `native-tls`
 - `tokio = "1"` with `features = ["full"]`
+- `regorus = "0.2"` with `set_rego_v1(true)`
 
 ## Reference Projects
 
