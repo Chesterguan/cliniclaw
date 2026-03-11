@@ -5,6 +5,7 @@ pub mod error;
 pub mod mock;
 pub mod mock_data;
 pub mod resources;
+pub mod synthea;
 
 pub use backend::FhirBackend;
 pub use bundle::{Bundle, BundleEntry};

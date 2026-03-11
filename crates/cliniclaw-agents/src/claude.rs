@@ -72,17 +72,16 @@ impl ClaudeCapability {
     /// Default timeout for Claude API calls (120 seconds).
     const DEFAULT_TIMEOUT_SECS: u64 = 120;
 
-    pub fn new(api_key: SecretString, model: impl Into<String>, max_tokens: u32) -> Self {
+    pub fn new(api_key: SecretString, model: impl Into<String>, max_tokens: u32) -> Result<Self, AgentError> {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(Self::DEFAULT_TIMEOUT_SECS))
-            .build()
-            .expect("failed to build HTTP client");
-        Self {
+            .build()?;
+        Ok(Self {
             client,
             api_key,
             model: model.into(),
             max_tokens,
-        }
+        })
     }
 
     pub async fn call(&self, prompt: &PromptEnvelope) -> Result<String, AgentError> {

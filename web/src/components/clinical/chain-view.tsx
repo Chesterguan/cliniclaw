@@ -53,7 +53,7 @@ export function ChainView({ chain }: ChainViewProps) {
             <div className="flex flex-col items-center gap-1">
               <div className="w-12 h-12 rounded-lg bg-slate-700 border border-slate-600 flex flex-col items-center justify-center">
                 <span className="text-xs font-bold text-slate-300">
-                  {agentIcons[turn.agent_name] || turn.agent_name.charAt(0).toUpperCase()}
+                  {agentIcons[turn.agent_name] || (turn.agent_name ?? '?').charAt(0).toUpperCase()}
                 </span>
                 <div className={`w-1.5 h-1.5 rounded-full mt-0.5 ${statusDot[turn.status] || 'bg-slate-500'}`} />
               </div>

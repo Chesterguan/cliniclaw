@@ -11,12 +11,14 @@ use crossterm::{
 use ratatui::prelude::CrosstermBackend;
 use std::io::stdout;
 
-use app::App;
+use app::{App, RightPanel, ViewMode};
 use event::{AppEvent, EventHandler};
 
 fn main() -> Result<()> {
     let mut api_base = "http://localhost:3000".to_string();
-    let mut encounter_id = "enc-001".to_string();
+    // Default to empty so the SSE connection receives all encounters.
+    // Pass --encounter-id enc-001 to filter to a single encounter in detail mode.
+    let mut encounter_id = String::new();
 
     let args: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -41,8 +43,18 @@ fn main() -> Result<()> {
                 println!();
                 println!("Options:");
                 println!("  --api-url <URL>          API base URL (default: http://localhost:3000)");
-                println!("  --encounter-id <ID>      Encounter ID (default: enc-001)");
+                println!("  --encounter-id <ID>      Encounter ID to filter events (default: empty = all encounters)");
+                println!("                           Omit for hospital dashboard mode ([h] to toggle views).");
                 println!("  -h, --help               Show this help");
+                println!();
+                println!("Key bindings:");
+                println!("  [h]   Toggle hospital / detail view");
+                println!("  [s]   Trigger full hospital simulation (POST /v1/simulate)");
+                println!("  [n]   Trigger ambient note agent");
+                println!("  [o]   Trigger order-entry agent");
+                println!("  [p]   Trigger prior-auth agent");
+                println!("  [c]   Clear event log");
+                println!("  [q]   Quit");
                 return Ok(());
             }
             _ => {}
@@ -73,7 +85,12 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
     let tx = events.tx();
 
     loop {
-        terminal.draw(|f| ui::draw(f, &mut app))?;
+        terminal.draw(|f| {
+            match app.view_mode {
+                ViewMode::Detail => ui::draw(f, &mut app),
+                ViewMode::Hospital => ui::draw_hospital(f, &app, f.area()),
+            }
+        })?;
 
         if let Some(ev) = events.next().await {
             match ev {
@@ -82,8 +99,16 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                         continue;
                     }
                     match (key.code, key.modifiers) {
-                        (KeyCode::Char('q'), _) | (KeyCode::Esc, _) => {
+                        (KeyCode::Char('q'), _) => {
                             app.should_quit = true;
+                        }
+                        // Escape: close event-detail panel if open, otherwise quit
+                        (KeyCode::Esc, _) => {
+                            if app.right_panel == RightPanel::EventDetail {
+                                app.close_event_detail();
+                            } else {
+                                app.should_quit = true;
+                            }
                         }
                         (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => {
                             app.should_quit = true;
@@ -91,8 +116,23 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                         (KeyCode::Char('c'), _) => {
                             app.clear();
                         }
+                        // Toggle between hospital dashboard and single-encounter detail view
+                        (KeyCode::Char('h'), _) => {
+                            app.view_mode = match app.view_mode {
+                                ViewMode::Detail => ViewMode::Hospital,
+                                ViewMode::Hospital => ViewMode::Detail,
+                            };
+                        }
+                        // Trigger full hospital simulation (all 6 encounters)
+                        (KeyCode::Char('s'), _) => {
+                            app.triggering = Some("Triggering simulation...".into());
+                            app.triggering_set_at = Some(std::time::Instant::now());
+                            app.error_message = None;
+                            event::trigger_simulate(tx.clone(), api_base.clone());
+                        }
                         (KeyCode::Char('n'), _) => {
                             app.triggering = Some("Triggering note...".into());
+                            app.triggering_set_at = Some(std::time::Instant::now());
                             app.error_message = None;
                             event::trigger_note(
                                 tx.clone(),
@@ -102,6 +142,7 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                         }
                         (KeyCode::Char('o'), _) => {
                             app.triggering = Some("Triggering order...".into());
+                            app.triggering_set_at = Some(std::time::Instant::now());
                             app.error_message = None;
                             event::trigger_order(
                                 tx.clone(),
@@ -111,12 +152,17 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                         }
                         (KeyCode::Char('p'), _) => {
                             app.triggering = Some("Triggering prior auth...".into());
+                            app.triggering_set_at = Some(std::time::Instant::now());
                             app.error_message = None;
                             event::trigger_prior_auth(
                                 tx.clone(),
                                 api_base.clone(),
                                 encounter_id.clone(),
                             );
+                        }
+                        // Open event-detail panel for the selected event
+                        (KeyCode::Enter, _) => {
+                            app.open_event_detail();
                         }
                         (KeyCode::Up, _) | (KeyCode::Char('k'), _) => {
                             app.scroll_up();
@@ -131,7 +177,8 @@ async fn run(api_base: String, encounter_id: String) -> Result<()> {
                     }
                 }
                 AppEvent::Tick => {
-                    // Redraw handled by loop
+                    // Drive time-based transitions (flash expiry, EPS decay)
+                    app.on_tick();
                 }
                 AppEvent::AgentEvent(ae) => {
                     app.on_agent_event(ae);

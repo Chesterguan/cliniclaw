@@ -1,5 +1,5 @@
 use chrono::DateTime;
-use sqlx::sqlite::SqliteRow;
+use sqlx::sqlite::{SqliteConnectOptions, SqliteRow};
 use sqlx::{Row, SqlitePool};
 use uuid::Uuid;
 
@@ -19,7 +19,9 @@ impl SqliteAuditStore {
     }
 
     pub async fn new(database_url: &str) -> Result<Self, PersistError> {
-        let pool = SqlitePool::connect(database_url).await?;
+        let options: SqliteConnectOptions = database_url.parse::<SqliteConnectOptions>()?
+            .create_if_missing(true);
+        let pool = SqlitePool::connect_with(options).await?;
         let store = Self { pool };
         store.migrate().await?;
         Ok(store)

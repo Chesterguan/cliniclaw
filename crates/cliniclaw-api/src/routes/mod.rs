@@ -11,11 +11,19 @@ use crate::state::AppState;
 
 pub mod audit;
 pub mod chain;
+pub mod demo;
+pub mod discharge;
 pub mod events;
 pub mod fhir_proxy;
+pub mod lab_review;
 pub mod notes;
+pub mod nurse_assess;
 pub mod orders;
+pub mod pharmacy;
 pub mod prior_auth;
+pub mod simulate;
+pub mod simulate_dynamic;
+pub mod triage;
 pub mod turns;
 pub mod workspace;
 pub mod worklist;
@@ -86,8 +94,33 @@ pub(crate) fn extract_bearer_token(
 // ── Router ───────────────────────────────────────────────────────────────────
 
 pub fn router(state: Arc<AppState>) -> Router {
-    // Permissive CORS for development; tighten for production.
-    let cors = CorsLayer::permissive();
+    // Permissive CORS in dev/mock mode; restricted in production.
+    let cors = if std::env::var("CLINICLAW_MOCK")
+        .map(|v| v == "true" || v == "1")
+        .unwrap_or(false)
+    {
+        CorsLayer::permissive()
+    } else {
+        let origins = std::env::var("CORS_ORIGINS")
+            .unwrap_or_else(|_| "http://localhost:3001".to_string());
+        CorsLayer::new()
+            .allow_origin(tower_http::cors::AllowOrigin::list(
+                origins
+                    .split(',')
+                    .filter_map(|s| s.trim().parse().ok()),
+            ))
+            .allow_methods([
+                axum::http::Method::GET,
+                axum::http::Method::POST,
+                axum::http::Method::PUT,
+                axum::http::Method::DELETE,
+                axum::http::Method::OPTIONS,
+            ])
+            .allow_headers([
+                axum::http::header::CONTENT_TYPE,
+                axum::http::header::AUTHORIZATION,
+            ])
+    };
 
     Router::new()
         // Ambient documentation
@@ -96,6 +129,24 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/v1/encounter/:id/orders", post(orders::propose_order))
         // Prior authorization
         .route("/v1/encounter/:id/prior-auth", post(prior_auth::assemble_prior_auth))
+        // Triage assessment
+        .route("/v1/encounter/:id/triage", post(triage::triage_handler))
+        // Lab review and interpretation
+        .route("/v1/encounter/:id/lab-review", post(lab_review::lab_review_handler))
+        // Discharge planning
+        .route("/v1/encounter/:id/discharge-plan", post(discharge::discharge_plan_handler))
+        // Nursing assessment
+        .route("/v1/encounter/:id/nurse-assess", post(nurse_assess::nurse_assess_handler))
+        // Pharmacy review (advisory only — no FHIR write)
+        .route("/v1/encounter/:id/pharmacy-review", post(pharmacy::pharmacy_review_handler))
+        // Multi-pathway simulation orchestrator
+        .route("/v1/simulate", post(simulate::run_simulation))
+        // Demo: scripted single-patient chest pain scenario
+        .route("/v1/demo/state", get(demo::get_demo_state))
+        .route("/v1/demo/start", post(demo::start_demo))
+        .route("/v1/demo/approve", post(demo::approve_demo))
+        .route("/v1/demo/reset", post(demo::reset_demo))
+        .route("/v1/simulate/dynamic", post(simulate_dynamic::run_dynamic_simulation))
         // Clinician worklist
         .route("/v1/worklist", get(worklist::get_worklist))
         // Audit trail

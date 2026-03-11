@@ -1,38 +1,57 @@
-@import "tailwindcss";
-
 /*
- * ClinicClaw Clinical Color System
+ * ClinicClaw Global Styles
  *
- * Follows the VERITAS principle of explicit over implicit.
- * Every color token maps to a specific clinical meaning — not decoration.
+ * Design direction: Apple-minimal × Data Observatory / Mission Control.
+ * Monochromatic blue/cyan accent palette. Amber reserved for clinical alerts only.
+ * Monospace for all data, IDs, hashes. Generous whitespace. Chrome fades, content stays.
  *
- * Red    = critical / hard stop / danger / allergy
- * Amber  = warning / pending approval / overdue
- * Blue   = info / metadata / CDS guidance
- * Green  = verified / NKDA / signed / success
- * Slate  = structural chrome (sidebar, headers)
- * Purple = DNR/DNI flags (reserved for advance directives)
+ * Last updated: 2026-02-25
  */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────────── */
+
 :root {
-  /* Clinical alert colors — use these via var() in custom components */
-  --clinical-critical: #dc2626;   /* red-600 */
-  --clinical-warning: #f59e0b;    /* amber-500 */
-  --clinical-info: #3b82f6;       /* blue-500 */
-  --clinical-success: #16a34a;    /* green-600 */
-  --clinical-dnr: #9333ea;        /* purple-600 — reserved */
+  /*
+   * Clinical alert colors — every token maps to a specific clinical meaning,
+   * never purely decorative. Follows VERITAS: explicit over implicit.
+   *
+   * Red    = critical / hard stop / allergy / danger
+   * Amber  = warning / pending approval / overdue / alert
+   * Cyan   = info / system / navigation accent
+   * Green  = verified / signed / NKDA / success
+   * Slate  = structural chrome (sidebar, headers, borders)
+   * Purple = DNR/DNI advance directives — reserved, do not repurpose
+   */
+  --clinical-critical: #ef4444;   /* red-500 — slightly lighter than before, more legible on dark */
+  --clinical-warning:  #f59e0b;   /* amber-500 — keep warm, used for clinical alerts */
+  --clinical-info:     #22d3ee;   /* cyan-400 — primary accent, replaces blue */
+  --clinical-success:  #10b981;   /* emerald-500 — cleaner green */
+  --clinical-dnr:      #a855f7;   /* purple-500 — reserved for advance directives */
 
-  /* Structural chrome */
-  --sidebar-bg: #0f172a;          /* slate-900 */
-  --sidebar-border: #1e293b;      /* slate-800 */
-  --content-bg: #ffffff;
+  /* Navigation / structural chrome */
+  --sidebar-bg:      #08090e;   /* near-black with a slight blue cast — not pure #000 */
+  --sidebar-border:  #13151f;   /* barely visible — shadow does the separation instead */
+  --content-bg:      #f9fafb;   /* slightly warm white */
 
-  /* Typography scale */
-  --font-clinical: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono-clinical: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Roboto Mono", monospace;
+
+  /* Accent — cyan/blue axis only */
+  --accent:         #22d3ee;   /* cyan-400 */
+  --accent-dim:     #0891b2;   /* cyan-600 */
+  --accent-subtle:  rgba(34, 211, 238, 0.08);
+
+  /* Sidebar accent line */
+  --sidebar-accent-height: 2px;
 }
 
-/* Base reset */
+/* ─── Base Reset ─────────────────────────────────────────────────────────── */
+
 *,
 *::before,
 *::after {
@@ -45,69 +64,133 @@ html {
 }
 
 body {
-  font-family: var(--font-clinical);
-  background-color: #f8fafc; /* slate-50 */
-  color: #0f172a;             /* slate-900 */
-  line-height: 1.5;
+  font-family: var(--font-sans);
+  background-color: var(--content-bg);
+  color: #0f172a;          /* slate-900 */
+  line-height: 1.6;        /* slightly more open than 1.5 — Apple-level breathing room */
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Clinical mono — used for hashes, IDs, MRNs */
+/* ─── Typography Utilities ───────────────────────────────────────────────── */
+
+/*
+ * .font-mono-data — Mission Control feel for numbers, IDs, MRNs, hashes,
+ * event streams, timestamps. JetBrains Mono at a slightly lighter weight
+ * so it reads as data, not code.
+ */
+.font-mono-data {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 0.8125rem;    /* 13px — slightly larger than the old 12px for legibility */
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * .font-clinical-mono — legacy alias kept for backward compat.
+ * All existing usages in chart pages, audit view, etc. continue to work.
+ * Internally maps to the same JetBrains Mono stack.
+ */
 .font-clinical-mono {
-  font-family: var(--font-mono-clinical);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.75rem;      /* 12px — preserve existing sizing */
   letter-spacing: 0.025em;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Demo watermark — required on all patient-facing data */
+/* ─── Clinical Badge ─────────────────────────────────────────────────────── */
+
+/*
+ * .demo-badge — preserved for backward compat (used in audit-view, layout, pages).
+ * Slightly more muted than the old amber — still clearly amber, just less loud.
+ */
 .demo-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.125rem 0.375rem;
+  padding: 0.125rem 0.5rem;
+  font-family: var(--font-mono);
   font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  background-color: #fef3c7; /* amber-100 */
-  color: #92400e;             /* amber-800 */
-  border: 1px solid #fcd34d; /* amber-300 */
+  background-color: rgba(245, 158, 11, 0.1);  /* amber, very dim */
+  color: #d97706;                               /* amber-600 */
+  border: 1px solid rgba(245, 158, 11, 0.25);
   border-radius: 0.25rem;
 }
 
-/* Pulsing animation for processing state */
-@keyframes clinical-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
+/* ─── Scrollbars ─────────────────────────────────────────────────────────── */
 
-.animate-clinical-pulse {
-  animation: clinical-pulse 1.5s ease-in-out infinite;
-}
-
-/* Scrollbar styling for clinical data panels */
+/*
+ * .clinical-scroll — thinner, darker scrollbars for data panels.
+ * Used across chart layout, activity stream, hospital 3D, audit view.
+ */
 .clinical-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .clinical-scroll::-webkit-scrollbar-track {
-  background: #f1f5f9; /* slate-100 */
+  background: transparent;
 }
 
 .clinical-scroll::-webkit-scrollbar-thumb {
-  background: #94a3b8; /* slate-400 */
-  border-radius: 3px;
+  background: #475569;   /* slate-600 — visible but not loud */
+  border-radius: 4px;
 }
 
 .clinical-scroll::-webkit-scrollbar-thumb:hover {
-  background: #64748b; /* slate-500 */
+  background: #64748b;   /* slate-500 */
 }
 
-/* Slide-in animation for activity stream events */
+/*
+ * Dark variant — for the 3D hospital page and other dark-background panels.
+ * Thumb is slightly lighter so it's visible against near-black backgrounds.
+ */
+.clinical-scroll-dark::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.clinical-scroll-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clinical-scroll-dark::-webkit-scrollbar-thumb {
+  background: #334155;   /* slate-700 — subtle against dark chrome */
+  border-radius: 4px;
+}
+
+.clinical-scroll-dark::-webkit-scrollbar-thumb:hover {
+  background: #475569;   /* slate-600 */
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+
+/*
+ * Pulsing animation — retained for processing states (notes page, prior auth).
+ * clinical-pulse = identical semantics to before, just renamed internally.
+ */
+@keyframes clinical-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+.animate-clinical-pulse {
+  animation: clinical-pulse 1.8s ease-in-out infinite;
+}
+
+/*
+ * Slide-in — activity stream events, hospital simulation cards.
+ * Shortened to 0.18s for snappier feel.
+ */
 @keyframes slide-in-right {
   from {
     opacity: 0;
-    transform: translateX(12px);
+    transform: translateX(10px);
   }
   to {
     opacity: 1;
@@ -116,5 +199,36 @@ body {
 }
 
 .animate-slide-in {
-  animation: slide-in-right 0.2s ease-out;
+  animation: slide-in-right 0.18s ease-out;
+}
+
+/*
+ * fade-in — page-level entrance, used on main content containers.
+ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out;
+}
+
+/*
+ * slide-up — card / panel entrance.
+ * Combine with fade-in for full Apple-style reveal.
+ */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.22s ease-out;
 }

@@ -39,7 +39,8 @@ import type { PriorAuthResponse } from "@/lib/types";
 
 type PageState = "input" | "loading" | "review";
 
-function statusBadgeClass(status: string): string {
+function statusBadgeClass(status: string | undefined | null): string {
+  if (!status) return "bg-amber-100 text-amber-800 border border-amber-300";
   switch (status.toLowerCase()) {
     case "approved":
       return "bg-green-100 text-green-800 border border-green-300";
@@ -53,11 +54,13 @@ function statusBadgeClass(status: string): string {
   }
 }
 
-function statusLabel(status: string): string {
+function statusLabel(status: string | undefined | null): string {
+  if (!status) return "Unknown";
   return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function urgencyBadgeClass(urgency: string): string {
+function urgencyBadgeClass(urgency: string | undefined | null): string {
+  if (!urgency) return "bg-slate-100 text-slate-700 border border-slate-200";
   switch (urgency.toLowerCase()) {
     case "urgent":
     case "stat":

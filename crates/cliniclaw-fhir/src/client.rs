@@ -46,16 +46,15 @@ impl FhirClient {
     /// Default timeout for FHIR API calls (30 seconds).
     const DEFAULT_TIMEOUT_SECS: u64 = 30;
 
-    pub fn new(base_url: impl Into<String>) -> Self {
+    pub fn new(base_url: impl Into<String>) -> Result<Self, FhirError> {
         let http = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(Self::DEFAULT_TIMEOUT_SECS))
-            .build()
-            .expect("failed to build HTTP client");
-        Self {
+            .build()?;
+        Ok(Self {
             http,
             base_url: base_url.into().trim_end_matches('/').to_string(),
             auth_token: None,
-        }
+        })
     }
 
     pub fn with_token(mut self, token: impl Into<String>) -> Self {

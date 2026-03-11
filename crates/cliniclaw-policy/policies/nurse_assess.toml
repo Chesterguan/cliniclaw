@@ -1,0 +1,34 @@
+# Rules: see nurse_assess.rego
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "nurse_assess.evaluate"
+name = "Nursing Assessment"
+description = "Perform comprehensive nursing assessment including fall risk and pain evaluation"
+version = "1.0.0"
+severity = "medium"
+allowed_roles = ["registered_nurse", "nurse_practitioner", "licensed_practical_nurse"]
+action = "nurse_assess.evaluate"
+required_capabilities = ["nurse_assess"]
+
+[skill.audit]
+intent = "Document standardized nursing assessment with validated screening tools"
+rationale = "Systematic nursing assessment ensures patient safety and meets Joint Commission requirements"
+
+[skill.audit.provenance]
+type = "guideline"
+reference = "Joint Commission National Patient Safety Goals"
+uri = "https://www.jointcommission.org/standards/national-patient-safety-goals/"
+version = "2025"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "encounter.status == arrived",
+    "encounter.status == triaged",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

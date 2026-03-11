@@ -1,0 +1,32 @@
+# Rules: see lab_review.rego
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "lab_review.interpret"
+name = "Laboratory Result Interpretation"
+description = "Interpret laboratory results and flag critical values"
+version = "1.0.0"
+severity = "medium"
+allowed_roles = ["physician", "nurse_practitioner", "physician_assistant", "pathologist"]
+action = "lab_review.interpret"
+required_capabilities = ["lab_review"]
+
+[skill.audit]
+intent = "Provide AI-assisted interpretation of laboratory results"
+rationale = "Automated lab review reduces turnaround time and helps identify critical values early"
+
+[skill.audit.provenance]
+type = "guideline"
+reference = "CAP Laboratory Improvement Standards"
+uri = "https://www.cap.org"
+version = "2024"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

@@ -1,0 +1,32 @@
+# Rules: see pharmacy_review.rego
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "pharmacy_review.evaluate"
+name = "Pharmacy Medication Review"
+description = "Review medication orders for interactions, allergies, and dosing appropriateness"
+version = "1.0.0"
+severity = "high"
+allowed_roles = ["pharmacist", "clinical_pharmacist", "physician"]
+action = "pharmacy_review.evaluate"
+required_capabilities = ["pharmacy_review"]
+
+[skill.audit]
+intent = "Perform automated medication safety review for drug interactions and allergies"
+rationale = "Pharmacist review of medication orders is required by JCAHO standards to prevent adverse drug events"
+
+[skill.audit.provenance]
+type = "regulatory"
+reference = "JCAHO Medication Management Standards MM.04.01.01"
+uri = "https://www.jointcommission.org/standards/"
+version = "2024"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

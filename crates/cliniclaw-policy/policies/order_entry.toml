@@ -1,23 +1,4 @@
-[[rule]]
-name = "require_approval_high_risk"
-action = "order_entry.propose_high_risk"
-decision = "require_approval"
-required_capabilities = ["order_entry"]
-priority = 20
-
-[[rule]]
-name = "allow_order_proposal"
-action = "order_entry.propose"
-decision = "allow"
-required_capabilities = ["order_entry"]
-priority = 10
-
-[[rule]]
-name = "allow_order_review"
-action = "order_entry.review"
-decision = "allow"
-required_capabilities = ["order_review"]
-priority = 10
+# Rules: see order_entry.rego
 
 # ── Clinical Skill Specifications (PSDL-inspired) ──
 

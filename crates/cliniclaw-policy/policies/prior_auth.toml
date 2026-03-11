@@ -1,23 +1,4 @@
-[[rule]]
-name = "require_approval_pa_submit"
-action = "prior_auth.submit"
-decision = "require_approval"
-required_capabilities = ["prior_auth"]
-priority = 20
-
-[[rule]]
-name = "allow_pa_assembly"
-action = "prior_auth.assemble"
-decision = "allow"
-required_capabilities = ["prior_auth"]
-priority = 10
-
-[[rule]]
-name = "allow_pa_status_check"
-action = "prior_auth.check_status"
-decision = "allow"
-required_capabilities = ["prior_auth"]
-priority = 10
+# Rules: see prior_auth.rego
 
 # ── Clinical Skill Specifications (PSDL-inspired) ──
 

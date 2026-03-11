@@ -46,10 +46,56 @@ type NoteState = "input" | "processing" | "review";
 type SoapSection = "subjective" | "objective" | "assessment" | "plan";
 
 const SOAP_LABELS: Record<SoapSection, string> = {
-  subjective: "S — Subjective",
-  objective: "O — Objective",
-  assessment: "A — Assessment",
-  plan: "P — Plan",
+  subjective: "Subjective",
+  objective: "Objective",
+  assessment: "Assessment",
+  plan: "Plan",
+};
+
+// Left-border accent color per SOAP section (clinical convention)
+const SOAP_BORDER: Record<SoapSection, string> = {
+  subjective: "border-l-4 border-l-blue-400",
+  objective: "border-l-4 border-l-green-400",
+  assessment: "border-l-4 border-l-amber-400",
+  plan: "border-l-4 border-l-purple-400",
+};
+
+// Header text color per SOAP section
+const SOAP_HEADER_COLOR: Record<SoapSection, string> = {
+  subjective: "text-blue-700",
+  objective: "text-green-700",
+  assessment: "text-amber-700",
+  plan: "text-purple-700",
+};
+
+// Section letter badge per SOAP section
+const SOAP_LETTER: Record<SoapSection, string> = {
+  subjective: "S",
+  objective: "O",
+  assessment: "A",
+  plan: "P",
+};
+
+// Badge background per SOAP section
+const SOAP_BADGE_BG: Record<SoapSection, string> = {
+  subjective: "bg-blue-100 text-blue-700",
+  objective: "bg-green-100 text-green-700",
+  assessment: "bg-amber-100 text-amber-700",
+  plan: "bg-purple-100 text-purple-700",
+};
+
+// Human-readable labels for confidence factors returned by the API
+const CONFIDENCE_FACTOR_LABELS: Record<string, string> = {
+  valid_json: "Valid JSON structure",
+  complete_soap: "All SOAP sections present",
+  has_icd10_codes: "ICD-10 codes extracted",
+  has_assessment: "Assessment section present",
+  has_plan: "Plan section present",
+  has_subjective: "Subjective section present",
+  has_objective: "Objective section present",
+  note_length_ok: "Note length within range",
+  no_hallucination_markers: "No hallucination markers detected",
+  clinical_terminology: "Clinical terminology detected",
 };
 
 // ICD-10 code pattern — used to color-tag codes in the assessment section
@@ -471,47 +517,54 @@ function ReviewState({
         )}
       </div>
 
-      {/* ICD-10 codes from assessment */}
-      {icd10Codes.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold">
-            ICD-10:
-          </span>
-          {icd10Codes.map((code) => (
-            <span
-              key={code}
-              className="px-2 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-clinical-mono rounded"
-            >
-              {code}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* SOAP sections */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        {soapSections.map((section, idx) => {
+      {/* SOAP sections — each in its own card with section-specific left border */}
+      <div className="space-y-3">
+        {soapSections.map((section) => {
           const text = report[section];
           if (!text) return null;
-          const isLast = idx === soapSections.length - 1;
           return (
             <div
               key={section}
-              className={`p-5 ${!isLast ? "border-b border-slate-100" : ""}`}
+              className={`bg-white border border-slate-200 rounded-xl overflow-hidden ${SOAP_BORDER[section]}`}
             >
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
-                {SOAP_LABELS[section]}
-              </h4>
-              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+              <div className="px-5 pt-4 pb-1 flex items-center gap-2">
+                <span
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${SOAP_BADGE_BG[section]}`}
+                >
+                  {SOAP_LETTER[section]}
+                </span>
+                <h4
+                  className={`text-sm font-bold uppercase tracking-wide ${SOAP_HEADER_COLOR[section]}`}
+                >
+                  {SOAP_LABELS[section]}
+                </h4>
+              </div>
+              <p className="px-5 pb-4 pt-2 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
                 {text}
               </p>
+              {/* ICD-10 codes appear inline under Assessment */}
+              {section === "assessment" && icd10Codes.length > 0 && (
+                <div className="px-5 pb-4 flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-amber-600 font-semibold uppercase tracking-wide">
+                    ICD-10:
+                  </span>
+                  {icd10Codes.map((code) => (
+                    <span
+                      key={code}
+                      className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-clinical-mono rounded-full font-semibold"
+                    >
+                      {code}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
 
         {/* Fallback: if report doesn't have SOAP keys, show raw */}
         {!soapSections.some((s) => report[s]) && (
-          <div className="p-5">
+          <div className="bg-white border border-slate-200 rounded-xl p-5">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
               Note Content
             </h4>
@@ -539,7 +592,7 @@ function ReviewState({
           )}
         </button>
         {expandedMeta && (
-          <div className="px-4 py-3 space-y-2 text-xs">
+          <div className="px-4 py-3 space-y-3 text-xs">
             <MetaRow label="Audit Event ID" value={result.audit_event_id} mono />
             <MetaRow
               label="Spec Hash"
@@ -548,6 +601,23 @@ function ReviewState({
             />
             <MetaRow label="Status" value={result.status} />
             <MetaRow label="Policy Gate" value="ambient_documentation" />
+            {result.confidence?.factors && result.confidence.factors.length > 0 && (
+              <div className="flex items-start gap-3">
+                <span className="text-slate-400 w-32 flex-shrink-0">
+                  Confidence Factors
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {result.confidence.factors.map((factor) => (
+                    <span
+                      key={factor}
+                      className="px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded text-xs"
+                    >
+                      {CONFIDENCE_FACTOR_LABELS[factor] ?? factor}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

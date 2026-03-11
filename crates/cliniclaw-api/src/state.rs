@@ -14,4 +14,6 @@ pub struct AppState {
     pub workspace_store: Arc<dyn cliniclaw_kernel::WorkspaceStore>,
     /// Broadcast channel for real-time agent events (SSE).
     pub event_tx: broadcast::Sender<cliniclaw_kernel::AgentEvent>,
+    /// Demo orchestrator controller — single-patient scripted scenario.
+    pub demo: crate::routes::demo::DemoController,
 }

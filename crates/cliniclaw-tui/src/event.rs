@@ -40,7 +40,7 @@ impl EventHandler {
             }
         });
 
-        // SSE stream
+        // SSE stream — empty encounter_id subscribes to all events (hospital mode)
         let sse_tx = tx.clone();
         let sse_url = if encounter_id.is_empty() {
             format!("{api_base}/v1/events")
@@ -241,6 +241,51 @@ pub fn trigger_prior_auth(
             Err(e) => {
                 let _ = tx.send(AppEvent::TriggerResult {
                     agent: "prior_auth".into(),
+                    success: false,
+                    error: Some(e.to_string()),
+                });
+            }
+        }
+    });
+}
+
+/// POST /v1/simulate to kick off a full multi-patient hospital simulation.
+///
+/// Omit `--encounter-id` (or pass an empty string) when starting the TUI
+/// so the SSE connection subscribes to all encounters and picks up every
+/// event the simulation emits.
+pub fn trigger_simulate(
+    tx: mpsc::UnboundedSender<AppEvent>,
+    api_base: String,
+) {
+    tokio::spawn(async move {
+        let url = format!("{api_base}/v1/simulate");
+        let body = serde_json::json!({"speed": "fast"});
+        let result = reqwest::Client::new()
+            .post(&url)
+            .json(&body)
+            .send()
+            .await;
+        match result {
+            Ok(resp) if resp.status().is_success() => {
+                let _ = tx.send(AppEvent::TriggerResult {
+                    agent: "simulate".into(),
+                    success: true,
+                    error: None,
+                });
+            }
+            Ok(resp) => {
+                let status = resp.status();
+                let text = resp.text().await.unwrap_or_default();
+                let _ = tx.send(AppEvent::TriggerResult {
+                    agent: "simulate".into(),
+                    success: false,
+                    error: Some(format!("{status}: {text}")),
+                });
+            }
+            Err(e) => {
+                let _ = tx.send(AppEvent::TriggerResult {
+                    agent: "simulate".into(),
                     success: false,
                     error: Some(e.to_string()),
                 });

@@ -1,0 +1,32 @@
+# Rules: see triage_assess.rego
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "triage_assess.evaluate"
+name = "Triage Assessment"
+description = "Evaluate patient triage level using Emergency Severity Index"
+version = "1.0.0"
+severity = "medium"
+allowed_roles = ["physician", "nurse_practitioner", "physician_assistant", "registered_nurse", "triage_nurse"]
+action = "triage_assess.evaluate"
+required_capabilities = ["triage_assess"]
+
+[skill.audit]
+intent = "Assess and assign triage level for incoming patients"
+rationale = "Standardized triage assessment ensures consistent patient prioritization"
+
+[skill.audit.provenance]
+type = "guideline"
+reference = "ESI v4 Implementation Handbook"
+uri = "https://www.ahrq.gov/patient-safety/settings/emergency/esi.html"
+version = "4.0"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

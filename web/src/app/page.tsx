@@ -40,7 +40,8 @@ import type { WorklistEntry } from "@/lib/types";
 // SWR fetcher wraps the API call; refresh every 60s for a live worklist feel.
 const REFRESH_INTERVAL = 60_000;
 
-function classCodeLabel(code: string): string {
+function classCodeLabel(code: string | undefined | null): string {
+  if (!code) return "Unknown";
   switch (code.toUpperCase()) {
     case "IMP":
       return "Inpatient";
@@ -57,7 +58,8 @@ function classCodeLabel(code: string): string {
   }
 }
 
-function classCodeBadgeClass(code: string): string {
+function classCodeBadgeClass(code: string | undefined | null): string {
+  if (!code) return "bg-slate-100 text-slate-700 border border-slate-200";
   switch (code.toUpperCase()) {
     case "IMP":
       // Inpatient — amber; these patients have the most urgency
@@ -74,8 +76,8 @@ function classCodeBadgeClass(code: string): string {
 /** Sort inpatient encounters to the top, then by start time. */
 function sortWorklist(entries: WorklistEntry[]): WorklistEntry[] {
   return [...entries].sort((a, b) => {
-    const aIsInpatient = a.encounter.class_code.toUpperCase() === "IMP";
-    const bIsInpatient = b.encounter.class_code.toUpperCase() === "IMP";
+    const aIsInpatient = a.encounter.class_code?.toUpperCase() === "IMP";
+    const bIsInpatient = b.encounter.class_code?.toUpperCase() === "IMP";
     if (aIsInpatient && !bIsInpatient) return -1;
     if (!aIsInpatient && bIsInpatient) return 1;
 
@@ -234,6 +236,7 @@ function WorklistRow({
   return (
     <button
       onClick={onOpen}
+      aria-label={`Open chart for ${patient.name}`}
       className="w-full text-left bg-white border border-slate-200 rounded-lg px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all group"
     >
       <div className="md:grid md:grid-cols-[2fr_1fr_1.5fr_1fr_1fr_auto] gap-4 items-center">

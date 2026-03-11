@@ -119,6 +119,7 @@ export function AuditView({
         </div>
         <button
           onClick={() => mutate()}
+          aria-label="Refresh audit events"
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-600 bg-white border border-slate-200 rounded hover:bg-slate-50 transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
@@ -292,6 +293,7 @@ function ChainVerificationBanner({
       <button
         onClick={onVerify}
         disabled={verifying}
+        aria-label="Verify audit chain integrity"
         className="flex items-center gap-2 px-4 py-2 bg-white border border-current border-opacity-30 text-sm font-medium rounded-lg hover:bg-opacity-80 disabled:opacity-50 transition-colors whitespace-nowrap ml-4"
       >
         {verifying ? (
@@ -314,7 +316,8 @@ function ChainVerificationBanner({
 // Audit Event Row
 // ---------------------------------------------------------------------------
 
-function outcomeClass(outcome: string): string {
+function outcomeClass(outcome: string | undefined | null): string {
+  if (!outcome) return "bg-slate-100 text-slate-700 border border-slate-200";
   switch (outcome.toLowerCase()) {
     case "success":
     case "permitted":
@@ -331,7 +334,8 @@ function outcomeClass(outcome: string): string {
   }
 }
 
-function actionColor(action: string): string {
+function actionColor(action: string | undefined | null): string {
+  if (!action) return "text-slate-600";
   if (action.includes("note") || action.includes("documentation")) {
     return "text-blue-600";
   }

@@ -3,6 +3,7 @@ pub mod context;
 pub mod decision;
 pub mod engine;
 pub mod error;
+pub(crate) mod rego_engine;
 pub mod rule;
 pub mod skill;
 

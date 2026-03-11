@@ -17,7 +17,7 @@ import type {
 } from "./types";
 
 const BASE = "/api";
-const TOKEN = "demo-token"; // Mock mode token
+const TOKEN = process.env.NEXT_PUBLIC_CLINICLAW_TOKEN || "demo-token";
 
 async function request<T>(url: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${url}`, {

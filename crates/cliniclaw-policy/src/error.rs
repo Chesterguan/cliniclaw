@@ -40,4 +40,7 @@ pub enum PolicyError {
         scope: String,
         actual: String,
     },
+
+    #[error("policy evaluation error: {0}")]
+    EvaluationError(String),
 }

@@ -42,8 +42,11 @@ pub async fn event_stream(
                     let json = serde_json::to_string(&event).ok()?;
                     Some(Ok(Event::default().data(json)))
                 }
-                // Lagged — subscriber couldn't keep up; skip silently
-                Err(_) => None,
+                // Lagged — subscriber couldn't keep up
+                Err(e) => {
+                    tracing::warn!(error = %e, "SSE subscriber lagged — events dropped");
+                    None
+                }
             }
         });
 

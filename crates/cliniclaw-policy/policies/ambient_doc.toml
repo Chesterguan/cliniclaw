@@ -1,28 +1,4 @@
-[[rule]]
-name = "deny_note_on_finished_encounter"
-action = "ambient_doc.generate_note"
-decision = "deny"
-priority = 20
-
-[rule.conditions]
-encounter_status = "finished"
-
-[[rule]]
-name = "allow_note_generation"
-action = "ambient_doc.generate_note"
-decision = "allow"
-required_capabilities = ["note_generation"]
-priority = 10
-
-[rule.conditions]
-encounter_status = "in-progress"
-
-[[rule]]
-name = "allow_note_review"
-action = "ambient_doc.review_note"
-decision = "allow"
-required_capabilities = ["note_review"]
-priority = 10
+# Rules: see ambient_doc.rego
 
 # ── Clinical Skill Specifications (PSDL-inspired) ──
 

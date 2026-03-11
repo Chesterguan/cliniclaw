@@ -194,7 +194,16 @@ pub async fn generate_note(
         .and_then(|c| c.code.clone());
 
     // Role check
-    let role = body.practitioner_role.clone().unwrap_or_else(|| "physician".to_string());
+    let role = match body.practitioner_role.clone() {
+        Some(r) if !r.trim().is_empty() => r,
+        _ => {
+            tracing::warn!(
+                practitioner_id = %body.practitioner_id,
+                "practitioner_role not provided — defaulting to physician"
+            );
+            "physician".to_string()
+        }
+    };
     emitter.emit(AgentEventType::RoleCheck {
         role: role.clone(),
         allowed: true, // will be checked by policy engine

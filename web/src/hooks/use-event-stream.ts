@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { AgentEvent } from '@/lib/agent-events';
 
-const API_BASE = '/api';
+// SSE needs direct backend access — Next.js rewrites buffer streams
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 const DEFAULT_MAX_EVENTS = 200;
 
 interface UseEventStreamOptions {
@@ -49,8 +50,8 @@ export function useEventStream({
           const next = [...prev, event];
           return next.length > maxEventsRef.current ? next.slice(-maxEventsRef.current) : next;
         });
-      } catch {
-        // Ignore malformed events
+      } catch (err) {
+        console.warn('[SSE] malformed event:', err);
       }
     };
 

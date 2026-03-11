@@ -193,11 +193,14 @@ fn matches_params(resource: &serde_json::Value, params: &[(&str, &str)]) -> bool
                 .and_then(|v| v.as_str())
                 .map_or(false, |r| r == *value || r.ends_with(&format!("/{}", value))),
             // patient reference (alias for subject in some resources)
+            // Handles: "Patient/xxx", "urn:uuid:xxx", or bare ID
             "patient" => resource
                 .pointer("/subject/reference")
                 .and_then(|v| v.as_str())
                 .map_or(false, |r| {
-                    r == format!("Patient/{}", value) || r == *value
+                    r == format!("Patient/{}", value)
+                        || r == *value
+                        || r == format!("urn:uuid:{}", value)
                 }),
             // Simple top-level field match
             _ => resource

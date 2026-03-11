@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::capability::Capability;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct ActionContext {
     pub action: String,
     pub actor_id: String,

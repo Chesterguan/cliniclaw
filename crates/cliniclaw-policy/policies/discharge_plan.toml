@@ -1,0 +1,32 @@
+# Rules: see discharge_plan.rego
+
+# ── Clinical Skill Specifications (PSDL-inspired) ──
+
+[[skill]]
+id = "discharge_plan.generate"
+name = "Discharge Plan Generation"
+description = "Generate comprehensive discharge plan with instructions and follow-up schedule"
+version = "1.0.0"
+severity = "high"
+allowed_roles = ["physician", "nurse_practitioner", "physician_assistant", "case_manager"]
+action = "discharge_plan.generate"
+required_capabilities = ["discharge_plan"]
+
+[skill.audit]
+intent = "Generate a structured discharge plan including medication reconciliation"
+rationale = "Comprehensive discharge planning reduces readmission rates per CMS guidelines"
+
+[skill.audit.provenance]
+type = "regulatory"
+reference = "CMS Hospital Readmission Reduction Program"
+uri = "https://www.cms.gov/medicare/payment/prospective-payment-systems/acute-inpatient-pps/hospital-readmissions-reduction-program-hrrp"
+version = "2024"
+
+[skill.population]
+include = [
+    "encounter.status == in-progress",
+    "patient.active == true",
+]
+exclude = [
+    "patient.deceased == true",
+]

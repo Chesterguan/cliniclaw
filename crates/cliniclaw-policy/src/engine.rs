@@ -4,7 +4,7 @@ use crate::{
     context::ActionContext,
     decision::PolicyDecision,
     error::PolicyError,
-    rule::{PolicyFile, PolicyRule},
+    rego_engine::RegoEngine,
     skill::{ClinicalSkillSpec, Severity, SkillPolicyFile},
 };
 
@@ -20,50 +20,69 @@ pub struct SkillEvaluation {
     pub severity: Option<Severity>,
 }
 
-#[derive(Debug, Clone, Default)]
+/// Policy engine backed by OPA Rego (via regorus) for rule evaluation
+/// and TOML-based clinical skill metadata.
+///
+/// Rule evaluation is handled by Rego policies. Skill metadata (audit
+/// provenance, population gates, severity escalation) remains in Rust/TOML.
+#[derive(Debug, Clone)]
 pub struct PolicyEngine {
-    rules: Vec<PolicyRule>,
+    rego: RegoEngine,
     skills: Vec<ClinicalSkillSpec>,
 }
 
 impl PolicyEngine {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            rego: RegoEngine::new(),
+            skills: Vec::new(),
+        }
     }
 
-    /// Load policy rules from a TOML string (backward-compatible, [[rule]] only).
-    pub fn load_from_str(&mut self, toml_str: &str) -> Result<(), PolicyError> {
-        let policy_file: PolicyFile = toml::from_str(toml_str)
-            .map_err(|e| PolicyError::LoadError(e.to_string()))?;
+    /// Load a Rego policy from a string.
+    ///
+    /// `name` is a logical filename for error messages (e.g. "ambient_doc.rego").
+    pub fn load_rego_str(&mut self, name: &str, rego: &str) -> Result<(), PolicyError> {
+        self.rego.add_policy(name, rego)
+    }
 
-        for rule in &policy_file.rules {
-            if rule.name.is_empty() {
-                return Err(PolicyError::InvalidRule(
-                    "rule name must not be empty".to_string(),
-                ));
-            }
-            if rule.action.is_empty() {
-                return Err(PolicyError::InvalidRule(format!(
-                    "rule '{}' has an empty action pattern",
-                    rule.name
-                )));
-            }
+    /// Load a `.rego` policy file into the engine.
+    pub fn load_rego_file(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), PolicyError> {
+        self.rego.add_policy_from_file(path.as_ref())
+    }
+
+    /// Load clinical skill specs from a TOML string.
+    ///
+    /// Only `[[skill]]` sections are loaded. Any `[[rule]]` sections in the
+    /// TOML are silently ignored — rules must be provided via `.rego` files.
+    pub fn load_skills_from_str(&mut self, toml_str: &str) -> Result<(), PolicyError> {
+        let file: SkillPolicyFile =
+            toml::from_str(toml_str).map_err(|e| PolicyError::LoadError(e.to_string()))?;
+
+        for skill in &file.skills {
+            skill.validate()?;
         }
 
-        let count = policy_file.rules.len();
-        self.rules.extend(policy_file.rules);
-        info!(loaded_rules = count, total_rules = self.rules.len(), "policy rules loaded");
+        let skill_count = file.skills.len();
+
+        let mut skills = file.skills;
+        for skill in &mut skills {
+            skill.spec_hash = skill.compute_spec_hash();
+        }
+        self.skills.extend(skills);
+
+        info!(
+            loaded_skills = skill_count,
+            total_skills = self.skills.len(),
+            "clinical skills loaded"
+        );
         Ok(())
     }
 
-    pub fn load_from_file(&mut self, path: impl AsRef<std::path::Path>) -> Result<(), PolicyError> {
-        let path = path.as_ref();
-        let contents = std::fs::read_to_string(path)
-            .map_err(|e| PolicyError::LoadError(format!("{}: {}", path.display(), e)))?;
-        self.load_from_str(&contents)
-    }
-
-    /// Load both [[rule]] and [[skill]] sections from a TOML file.
+    /// Load clinical skill specs from a TOML file.
+    ///
+    /// Only `[[skill]]` sections are loaded. Any `[[rule]]` sections are
+    /// silently ignored — rules must come from `.rego` files.
     pub fn load_skills_from_file(
         &mut self,
         path: impl AsRef<std::path::Path>,
@@ -74,127 +93,59 @@ impl PolicyEngine {
         self.load_skills_from_str(&contents)
     }
 
-    /// Load both [[rule]] and [[skill]] sections from a unified TOML string.
-    pub fn load_skills_from_str(&mut self, toml_str: &str) -> Result<(), PolicyError> {
-        let file: SkillPolicyFile =
-            toml::from_str(toml_str).map_err(|e| PolicyError::LoadError(e.to_string()))?;
+    /// Load all policy files from a directory.
+    ///
+    /// - `.rego` files → Rego policy rules
+    /// - `.toml` files → Clinical skill metadata
+    pub fn load_policies_dir(
+        &mut self,
+        dir: impl AsRef<std::path::Path>,
+    ) -> Result<(), PolicyError> {
+        let dir = dir.as_ref();
+        if !dir.exists() {
+            return Err(PolicyError::LoadError(format!(
+                "policy directory not found: {}",
+                dir.display()
+            )));
+        }
 
-        for rule in &file.rules {
-            if rule.name.is_empty() {
-                return Err(PolicyError::InvalidRule(
-                    "rule name must not be empty".to_string(),
-                ));
+        let entries = std::fs::read_dir(dir)
+            .map_err(|e| PolicyError::LoadError(format!("{}: {}", dir.display(), e)))?;
+
+        for entry in entries {
+            let entry =
+                entry.map_err(|e| PolicyError::LoadError(format!("{}: {}", dir.display(), e)))?;
+            let path = entry.path();
+
+            match path.extension().and_then(|ext| ext.to_str()) {
+                Some("rego") => {
+                    info!(path = %path.display(), "loading rego policy");
+                    self.load_rego_file(&path)?;
+                }
+                Some("toml") => {
+                    info!(path = %path.display(), "loading skill definitions");
+                    self.load_skills_from_file(&path)?;
+                }
+                _ => {} // skip non-policy files
             }
-            if rule.action.is_empty() {
-                return Err(PolicyError::InvalidRule(format!(
-                    "rule '{}' has an empty action pattern",
-                    rule.name
-                )));
-            }
         }
 
-        for skill in &file.skills {
-            skill.validate()?;
-        }
-
-        let rule_count = file.rules.len();
-        let skill_count = file.skills.len();
-        self.rules.extend(file.rules);
-
-        let mut skills = file.skills;
-        for skill in &mut skills {
-            skill.spec_hash = skill.compute_spec_hash();
-        }
-        self.skills.extend(skills);
-
-        info!(
-            loaded_rules = rule_count,
-            loaded_skills = skill_count,
-            total_rules = self.rules.len(),
-            total_skills = self.skills.len(),
-            "policy rules and skills loaded"
-        );
         Ok(())
     }
 
-    /// Evaluate an action context against all loaded rules.
-    /// Deny-by-default: if no rule matches, action is denied.
-    /// This method is unchanged from the original for backward compatibility.
+    /// Evaluate an action context against loaded Rego policies.
+    ///
+    /// Deny-by-default: if no Rego package matches or evaluation fails,
+    /// the action is denied.
     pub fn evaluate(&self, context: &ActionContext) -> PolicyDecision {
-        let mut matched: Vec<&PolicyRule> = self
-            .rules
-            .iter()
-            .filter(|rule| Self::action_matches(&rule.action, &context.action))
-            .collect();
-
-        if matched.is_empty() {
-            warn!(
-                action = %context.action,
-                actor_id = %context.actor_id,
-                "policy deny-by-default: no rule matched action"
-            );
-            return PolicyDecision::Deny;
-        }
-
-        // Highest priority first
-        matched.sort_by(|a, b| b.priority.cmp(&a.priority));
-
-        // Iterate through rules in priority order. A rule only applies if ALL
-        // its conditions and capability requirements are met. If a rule's
-        // conditions don't match, skip to the next rule (lower priority).
-        'rules: for rule in &matched {
-            // Check required capabilities
-            let mut caps_ok = true;
-            for cap in &rule.required_capabilities {
-                if !context.capabilities.iter().any(|c| c == cap) {
-                    caps_ok = false;
-                    break;
-                }
-            }
-            if !caps_ok {
-                continue 'rules;
-            }
-
-            // Check conditions
-            let mut conditions_ok = true;
-            for (key, expected) in &rule.conditions {
-                match context.properties.get(key) {
-                    Some(actual) if actual == expected => {}
-                    _ => {
-                        conditions_ok = false;
-                        break;
-                    }
-                }
-            }
-            if !conditions_ok {
-                continue 'rules;
-            }
-
-            // All conditions and capabilities match — apply this rule
-            info!(
-                action = %context.action,
-                actor_id = %context.actor_id,
-                rule = %rule.name,
-                decision = ?rule.decision,
-                "policy decision"
-            );
-            return rule.decision.clone();
-        }
-
-        // No rule fully matched — deny by default
-        warn!(
-            action = %context.action,
-            actor_id = %context.actor_id,
-            "policy deny: no rule conditions fully matched"
-        );
-        PolicyDecision::Deny
+        self.rego.evaluate(context)
     }
 
     /// Skill-aware evaluation. Checks skill metadata (role, capability tokens,
-    /// population) before falling through to policy rule evaluation.
+    /// population) before falling through to Rego policy rule evaluation.
     ///
     /// Order: skill lookup → role check → capability token validation →
-    /// population gate → policy rule evaluation → severity escalation.
+    /// population gate → Rego policy evaluation → severity escalation.
     pub fn evaluate_with_skill(
         &self,
         context: &ActionContext,
@@ -258,7 +209,7 @@ impl PolicyEngine {
                 // Step 3: Population gate
                 skill.check_population(&context.properties)?;
 
-                // Step 4: Policy rule evaluation
+                // Step 4: Rego policy rule evaluation
                 let mut decision = self.evaluate(context);
 
                 // Step 5: Severity escalation — critical always requires approval
@@ -295,13 +246,11 @@ impl PolicyEngine {
     pub fn skills(&self) -> &[ClinicalSkillSpec] {
         &self.skills
     }
+}
 
-    fn action_matches(pattern: &str, action: &str) -> bool {
-        if let Some(prefix) = pattern.strip_suffix(".*") {
-            action.starts_with(&format!("{prefix}."))
-        } else {
-            pattern == action
-        }
+impl Default for PolicyEngine {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -311,9 +260,10 @@ mod tests {
     use crate::context::ActionContext;
     use crate::decision::PolicyDecision;
 
-    fn engine_with(toml: &str) -> PolicyEngine {
+    /// Create an engine with inline Rego rules.
+    fn engine_with_rego(name: &str, rego: &str) -> PolicyEngine {
         let mut engine = PolicyEngine::new();
-        engine.load_from_str(toml).expect("valid TOML");
+        engine.load_rego_str(name, rego).expect("valid Rego");
         engine
     }
 
@@ -327,7 +277,7 @@ mod tests {
         c
     }
 
-    // ── Existing tests (unchanged) ──────────────────────────────────
+    // ── Core evaluation tests ──────────────────────────────────────
 
     #[test]
     fn deny_by_default_no_rules() {
@@ -338,15 +288,18 @@ mod tests {
 
     #[test]
     fn allow_with_matching_capability() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
-            "#,
+package cliniclaw.ambient_doc
+
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+}
+"#,
         );
         let mut context = ctx("ambient_doc.generate_note", "practitioner-1");
         context.capabilities = vec!["note_generation".to_string()];
@@ -355,15 +308,18 @@ mod tests {
 
     #[test]
     fn deny_missing_required_capability() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
-            "#,
+package cliniclaw.ambient_doc
+
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+}
+"#,
         );
         let context = ctx("ambient_doc.generate_note", "practitioner-1");
         assert_eq!(engine.evaluate(&context), PolicyDecision::Deny);
@@ -371,15 +327,18 @@ mod tests {
 
     #[test]
     fn wildcard_action_matches_namespace() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "order_entry.rego",
             r#"
-            [[rule]]
-            name = "allow_all_order_entry"
-            action = "order_entry.*"
-            decision = "allow"
-            required_capabilities = ["order_entry"]
-            priority = 10
-            "#,
+package cliniclaw.order_entry
+
+default decision := "deny"
+
+decision := "allow" if {
+    startswith(input.action, "order_entry.")
+    "order_entry" in input.capabilities
+}
+"#,
         );
         let context = ctx_with_caps("order_entry.propose", "practitioner-1", &["order_entry"]);
         assert_eq!(engine.evaluate(&context), PolicyDecision::Allow);
@@ -390,54 +349,71 @@ mod tests {
 
     #[test]
     fn wildcard_does_not_match_different_namespace() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "order_entry.rego",
             r#"
-            [[rule]]
-            name = "allow_all_order_entry"
-            action = "order_entry.*"
-            decision = "allow"
-            required_capabilities = ["order_entry"]
-            priority = 10
-            "#,
+package cliniclaw.order_entry
+
+default decision := "deny"
+
+decision := "allow" if {
+    startswith(input.action, "order_entry.")
+    "order_entry" in input.capabilities
+}
+"#,
         );
-        let context = ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["order_entry"]);
+        let context =
+            ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["order_entry"]);
         assert_eq!(engine.evaluate(&context), PolicyDecision::Deny);
     }
 
     #[test]
-    fn higher_priority_rule_wins() {
-        let engine = engine_with(
+    fn higher_priority_deny_wins() {
+        // In Rego, deny and allow are mutually exclusive via conditions.
+        // The deny rule matches "finished" encounters specifically, preventing
+        // the allow rule from firing.
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "low_priority_allow"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
+package cliniclaw.ambient_doc
 
-            [[rule]]
-            name = "high_priority_deny"
-            action = "ambient_doc.generate_note"
-            decision = "deny"
-            priority = 20
-            "#,
+default decision := "deny"
+
+decision := "deny" if {
+    input.action == "ambient_doc.generate_note"
+    input.properties.encounter_status == "finished"
+}
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+}
+"#,
         );
-        let context =
+        // Finished encounter → deny wins
+        let mut context =
             ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["note_generation"]);
+        context
+            .properties
+            .insert("encounter_status".to_string(), "finished".to_string());
         assert_eq!(engine.evaluate(&context), PolicyDecision::Deny);
     }
 
     #[test]
     fn require_approval_decision() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "order_entry.rego",
             r#"
-            [[rule]]
-            name = "require_approval_high_risk"
-            action = "order_entry.propose_high_risk"
-            decision = "require_approval"
-            required_capabilities = ["order_entry"]
-            priority = 20
-            "#,
+package cliniclaw.order_entry
+
+default decision := "deny"
+
+decision := "require_approval" if {
+    input.action == "order_entry.propose_high_risk"
+    "order_entry" in input.capabilities
+}
+"#,
         );
         let context =
             ctx_with_caps("order_entry.propose_high_risk", "practitioner-1", &["order_entry"]);
@@ -446,18 +422,19 @@ mod tests {
 
     #[test]
     fn condition_match_allows_action() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen_in_progress"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
+package cliniclaw.ambient_doc
 
-            [rule.conditions]
-            encounter_status = "in-progress"
-            "#,
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+}
+"#,
         );
         let mut context =
             ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["note_generation"]);
@@ -469,18 +446,19 @@ mod tests {
 
     #[test]
     fn condition_mismatch_denies_action() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen_in_progress"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
+package cliniclaw.ambient_doc
 
-            [rule.conditions]
-            encounter_status = "in-progress"
-            "#,
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+}
+"#,
         );
         let mut context =
             ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["note_generation"]);
@@ -492,18 +470,19 @@ mod tests {
 
     #[test]
     fn condition_key_absent_denies_action() {
-        let engine = engine_with(
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen_in_progress"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
+package cliniclaw.ambient_doc
 
-            [rule.conditions]
-            encounter_status = "in-progress"
-            "#,
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+}
+"#,
         );
         let context =
             ctx_with_caps("ambient_doc.generate_note", "practitioner-1", &["note_generation"]);
@@ -511,28 +490,36 @@ mod tests {
     }
 
     #[test]
-    fn invalid_toml_returns_load_error() {
+    fn invalid_rego_returns_load_error() {
         let mut engine = PolicyEngine::new();
-        let result = engine.load_from_str("this is not valid toml !!!");
+        let result = engine.load_rego_str("bad.rego", "this is not valid rego !!!");
         assert!(matches!(result, Err(PolicyError::LoadError(_))));
     }
 
-    // ── New skill-aware evaluation tests ────────────────────────────
+    // ── Skill-aware evaluation tests ──────────────────────────────
 
-    fn skill_engine(toml: &str) -> PolicyEngine {
+    /// Create an engine with both Rego rules and TOML skill specs.
+    fn skill_engine(rego_name: &str, rego: &str, skill_toml: &str) -> PolicyEngine {
         let mut engine = PolicyEngine::new();
-        engine.load_skills_from_str(toml).expect("valid TOML");
+        engine.load_rego_str(rego_name, rego).expect("valid Rego");
+        engine
+            .load_skills_from_str(skill_toml)
+            .expect("valid skill TOML");
         engine
     }
 
-    const SKILL_TOML: &str = r#"
-        [[rule]]
-        name = "allow_note_gen"
-        action = "ambient_doc.generate_note"
-        decision = "allow"
-        required_capabilities = ["note_generation"]
-        priority = 10
+    const SKILL_REGO: &str = r#"
+package cliniclaw.ambient_doc
 
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+}
+"#;
+
+    const SKILL_TOML: &str = r#"
         [[skill]]
         id = "ambient_doc.generate_note"
         name = "Ambient Doc"
@@ -557,7 +544,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_role_denied() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
         c.capabilities = vec!["note_generation".into()];
         c.role = Some("receptionist".into());
@@ -568,7 +555,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_role_allowed() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
         c.capabilities = vec!["note_generation".into()];
         c.role = Some("physician".into());
@@ -582,7 +569,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_population_excluded() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
         c.capabilities = vec!["note_generation".into()];
         c.properties.insert("patient.active".into(), "true".into());
@@ -598,7 +585,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_missing_capability() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let c = ctx("ambient_doc.generate_note", "actor-1");
         // No capabilities at all
 
@@ -611,15 +598,17 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_critical_escalates() {
-        let engine = skill_engine(
-            r#"
-            [[rule]]
-            name = "allow_controlled"
-            action = "order_entry.propose_controlled"
-            decision = "allow"
-            required_capabilities = ["order_entry"]
-            priority = 10
+        let rego = r#"
+package cliniclaw.order_entry
 
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "order_entry.propose_controlled"
+    "order_entry" in input.capabilities
+}
+"#;
+        let skill_toml = r#"
             [[skill]]
             id = "order_entry.propose_controlled"
             name = "Controlled Substance Order"
@@ -635,9 +624,9 @@ mod tests {
             [skill.audit.provenance]
             type = "regulatory"
             reference = "DEA 21 CFR Part 1306"
-        "#,
-        );
+        "#;
 
+        let engine = skill_engine("order_entry.rego", rego, skill_toml);
         let mut c = ctx("order_entry.propose_controlled", "actor-1");
         c.capabilities = vec!["order_entry".into()];
 
@@ -652,16 +641,19 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_fallback_when_no_skill() {
-        // Only rules loaded, no skills
-        let engine = engine_with(
+        // Only Rego rules loaded, no skills
+        let engine = engine_with_rego(
+            "ambient_doc.rego",
             r#"
-            [[rule]]
-            name = "allow_note_gen"
-            action = "ambient_doc.generate_note"
-            decision = "allow"
-            required_capabilities = ["note_generation"]
-            priority = 10
-            "#,
+package cliniclaw.ambient_doc
+
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "ambient_doc.generate_note"
+    "note_generation" in input.capabilities
+}
+"#,
         );
 
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
@@ -675,7 +667,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_returns_spec_hash() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
         c.capabilities = vec!["note_generation".into()];
         c.properties.insert("patient.active".into(), "true".into());
@@ -689,7 +681,7 @@ mod tests {
 
     #[test]
     fn evaluate_with_skill_no_role_in_context_skips_role_check() {
-        let engine = skill_engine(SKILL_TOML);
+        let engine = skill_engine("ambient_doc.rego", SKILL_REGO, SKILL_TOML);
         let mut c = ctx("ambient_doc.generate_note", "actor-1");
         c.capabilities = vec!["note_generation".into()];
         // role is None — should skip role check
@@ -722,5 +714,109 @@ mod tests {
         "#,
         );
         assert!(matches!(result, Err(PolicyError::InvalidRule(_))));
+    }
+
+    // ── Rego-specific tests (new capabilities TOML couldn't express) ──
+
+    #[test]
+    fn rego_or_logic_via_set_membership() {
+        // Nurse assessment allows multiple encounter statuses — something
+        // that required 3 separate TOML rules now expressed as one Rego rule.
+        let engine = engine_with_rego(
+            "nurse_assess.rego",
+            r#"
+package cliniclaw.nurse_assess
+
+default decision := "deny"
+
+decision := "allow" if {
+    input.action == "nurse_assess.evaluate"
+    "nurse_assess" in input.capabilities
+    input.properties.encounter_status in {"in-progress", "arrived", "triaged"}
+}
+"#,
+        );
+
+        for status in &["in-progress", "arrived", "triaged"] {
+            let mut c = ctx_with_caps("nurse_assess.evaluate", "nurse-1", &["nurse_assess"]);
+            c.properties
+                .insert("encounter_status".to_string(), status.to_string());
+            assert_eq!(
+                engine.evaluate(&c),
+                PolicyDecision::Allow,
+                "should allow for status {status}"
+            );
+        }
+
+        // "finished" should deny
+        let mut c = ctx_with_caps("nurse_assess.evaluate", "nurse-1", &["nurse_assess"]);
+        c.properties
+            .insert("encounter_status".to_string(), "finished".to_string());
+        assert_eq!(engine.evaluate(&c), PolicyDecision::Deny);
+    }
+
+    #[test]
+    fn rego_negation_for_discharge_plan() {
+        // Discharge plan: inpatient requires approval, others allowed.
+        // Uses `not` — impossible in old TOML DSL.
+        let engine = engine_with_rego(
+            "discharge_plan.rego",
+            r#"
+package cliniclaw.discharge_plan
+
+default decision := "deny"
+
+decision := "deny" if {
+    input.action == "discharge_plan.generate"
+    input.properties.encounter_status == "finished"
+}
+
+decision := "require_approval" if {
+    input.action == "discharge_plan.generate"
+    "discharge_plan" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+    input.properties.encounter_class == "IMP"
+}
+
+decision := "allow" if {
+    input.action == "discharge_plan.generate"
+    "discharge_plan" in input.capabilities
+    input.properties.encounter_status == "in-progress"
+    not input.properties.encounter_class == "IMP"
+}
+"#,
+        );
+
+        // Inpatient → require_approval
+        let mut c =
+            ctx_with_caps("discharge_plan.generate", "doc-1", &["discharge_plan"]);
+        c.properties
+            .insert("encounter_status".to_string(), "in-progress".to_string());
+        c.properties
+            .insert("encounter_class".to_string(), "IMP".to_string());
+        assert_eq!(engine.evaluate(&c), PolicyDecision::RequireApproval);
+
+        // Outpatient → allow
+        let mut c2 =
+            ctx_with_caps("discharge_plan.generate", "doc-1", &["discharge_plan"]);
+        c2.properties
+            .insert("encounter_status".to_string(), "in-progress".to_string());
+        c2.properties
+            .insert("encounter_class".to_string(), "AMB".to_string());
+        assert_eq!(engine.evaluate(&c2), PolicyDecision::Allow);
+
+        // No encounter_class → allow (not IMP)
+        let mut c3 =
+            ctx_with_caps("discharge_plan.generate", "doc-1", &["discharge_plan"]);
+        c3.properties
+            .insert("encounter_status".to_string(), "in-progress".to_string());
+        assert_eq!(engine.evaluate(&c3), PolicyDecision::Allow);
+
+        // Finished → deny
+        let mut c4 =
+            ctx_with_caps("discharge_plan.generate", "doc-1", &["discharge_plan"]);
+        c4.properties
+            .insert("encounter_status".to_string(), "finished".to_string());
+        assert_eq!(engine.evaluate(&c4), PolicyDecision::Deny);
     }
 }
