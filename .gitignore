@@ -48,3 +48,4 @@ demo.mp4
 # Test fixtures with real PHI (never commit)
 tests/fixtures/real/
 linkedin-posts.md
+*.png
