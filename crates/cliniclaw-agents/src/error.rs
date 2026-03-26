@@ -29,4 +29,7 @@ pub enum AgentError {
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("model registry error: {0}")]
+    ModelRegistry(String),
 }

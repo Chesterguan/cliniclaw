@@ -404,7 +404,7 @@ mod tests {
         assert!(report.subject.is_some());
         assert!(report.encounter.is_some());
         assert!(report.presented_form.is_some());
-        let code = report.code.coding.as_ref().unwrap();
+        let code = report.code.coding.as_ref().expect("coding should be set");
         assert_eq!(code[0].code, Some("11502-2".to_string()));
     }
 

@@ -369,7 +369,7 @@ mod tests {
         assert!(obs.subject.is_some());
         assert!(obs.encounter.is_some());
         assert_eq!(obs.value_string, Some("ESI-2: Emergent".to_string()));
-        let code = obs.code.coding.as_ref().unwrap();
+        let code = obs.code.coding.as_ref().expect("coding should be set");
         assert_eq!(code[0].code, Some("56840-2".to_string()));
     }
 

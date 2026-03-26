@@ -56,6 +56,9 @@ impl SqliteAuditStore {
         sqlx::query("CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_events(action)")
             .execute(&self.pool)
             .await?;
+        sqlx::query("CREATE INDEX IF NOT EXISTS idx_audit_decision ON audit_events(policy_decision)")
+            .execute(&self.pool)
+            .await?;
 
         Ok(())
     }
@@ -175,6 +178,37 @@ impl SqliteAuditStore {
         rows.into_iter().map(row_to_event).collect()
     }
 
+    /// Query audit events by policy decision (outcome type).
+    /// Useful for monitoring denial rates and failure patterns.
+    pub async fn get_by_outcome(&self, decision: &str) -> Result<Vec<AuditEvent>, PersistError> {
+        let rows: Vec<SqliteRow> = sqlx::query(
+            "SELECT id, timestamp, actor_id, patient_id, action, policy_decision, input_hash, output_hash, previous_hash, event_hash, metadata
+             FROM audit_events WHERE policy_decision = ? ORDER BY timestamp ASC",
+        )
+        .bind(decision)
+        .fetch_all(&self.pool)
+        .await?;
+
+        rows.into_iter().map(row_to_event).collect()
+    }
+
+    /// Count events grouped by policy decision. Returns a map of decision -> count.
+    pub async fn outcome_counts(&self) -> Result<std::collections::HashMap<String, i64>, PersistError> {
+        let rows: Vec<SqliteRow> = sqlx::query(
+            "SELECT policy_decision, COUNT(*) as cnt FROM audit_events GROUP BY policy_decision",
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut counts = std::collections::HashMap::new();
+        for row in rows {
+            let decision: String = Row::get(&row, "policy_decision");
+            let cnt: i64 = Row::get(&row, "cnt");
+            counts.insert(decision, cnt);
+        }
+        Ok(counts)
+    }
+
     pub async fn verify_chain(&self) -> Result<bool, PersistError> {
         let rows: Vec<SqliteRow> = sqlx::query(
             "SELECT id, timestamp, actor_id, patient_id, action, policy_decision, input_hash, output_hash, previous_hash, event_hash, metadata
@@ -246,7 +280,7 @@ fn row_to_event(row: SqliteRow) -> Result<AuditEvent, PersistError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::AuditEvent;
+    use crate::{AuditEvent, AuditOutcome};
 
     async fn test_store() -> SqliteAuditStore {
         SqliteAuditStore::new("sqlite::memory:").await.unwrap()
@@ -328,6 +362,173 @@ mod tests {
     #[tokio::test]
     async fn verify_chain_empty_store() {
         let store = test_store().await;
+        assert!(store.verify_chain().await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn audit_policy_denial() {
+        let store = test_store().await;
+        let outcome = AuditOutcome::PolicyDenied {
+            reason: "missing capability: order_entry".into(),
+        };
+        let mut event = AuditEvent::for_outcome(
+            "practitioner-1",
+            Some("patient-1".to_string()),
+            "order_entry.propose",
+            &outcome,
+            "input-hash",
+            "",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let denials = store.get_by_outcome("deny").await.unwrap();
+        assert_eq!(denials.len(), 1);
+        assert_eq!(denials[0].policy_decision, "deny");
+        assert!(denials[0].metadata.is_some());
+    }
+
+    #[tokio::test]
+    async fn audit_agent_error() {
+        let store = test_store().await;
+        let outcome = AuditOutcome::AgentError {
+            reason: "LLM timeout".into(),
+        };
+        let mut event = AuditEvent::for_outcome(
+            "practitioner-1",
+            None,
+            "ambient_doc.generate_note",
+            &outcome,
+            "input-hash",
+            "",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let errors = store.get_by_outcome("agent_error").await.unwrap();
+        assert_eq!(errors.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn outcome_counts_aggregation() {
+        let store = test_store().await;
+
+        // Mix of outcomes
+        let mut e1 = AuditEvent::new("a", None, "act1", "allow", "ih", "oh", "");
+        store.append(&mut e1).await.unwrap();
+
+        let mut e2 = AuditEvent::for_outcome("a", None, "act2", &AuditOutcome::PolicyDenied { reason: "test".into() }, "ih", "");
+        store.append(&mut e2).await.unwrap();
+
+        let mut e3 = AuditEvent::new("a", None, "act3", "allow", "ih", "oh", "");
+        store.append(&mut e3).await.unwrap();
+
+        let counts = store.outcome_counts().await.unwrap();
+        assert_eq!(counts.get("allow"), Some(&2));
+        assert_eq!(counts.get("deny"), Some(&1));
+    }
+
+    #[tokio::test]
+    async fn append_denial_event() {
+        let store = test_store().await;
+        let mut event = AuditEvent::denied(
+            "practitioner-1",
+            Some("patient-1".to_string()),
+            "order_entry.propose",
+            "missing capability: order_entry",
+            "input-hash-abc",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let fetched = store.get(event.id).await.unwrap().expect("event should exist");
+        assert_eq!(fetched.policy_decision, "policy_denied");
+        assert_eq!(fetched.output_hash, "none");
+        assert!(fetched.verify_hash());
+        let meta = fetched.metadata.unwrap();
+        assert_eq!(meta["outcome"], "policy_denied");
+        assert_eq!(meta["reason"], "missing capability: order_entry");
+    }
+
+    #[tokio::test]
+    async fn append_approval_event() {
+        let store = test_store().await;
+        let mut event = AuditEvent::awaiting_approval(
+            "practitioner-1",
+            Some("patient-1".to_string()),
+            "order_entry.propose_controlled",
+            "input-hash-abc",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let fetched = store.get(event.id).await.unwrap().expect("event should exist");
+        assert_eq!(fetched.policy_decision, "awaiting_approval");
+        assert!(fetched.verify_hash());
+    }
+
+    #[tokio::test]
+    async fn append_agent_error_event() {
+        let store = test_store().await;
+        let mut event = AuditEvent::agent_error(
+            "triage-agent",
+            Some("patient-1".to_string()),
+            "triage_assess.evaluate",
+            "LLM timeout after 120s",
+            "input-hash-abc",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let fetched = store.get(event.id).await.unwrap().expect("event should exist");
+        assert_eq!(fetched.policy_decision, "agent_error");
+        let meta = fetched.metadata.unwrap();
+        assert_eq!(meta["error"], "LLM timeout after 120s");
+    }
+
+    #[tokio::test]
+    async fn append_verification_failed_event() {
+        let store = test_store().await;
+        let mut event = AuditEvent::verification_failed(
+            "ambient-doc-agent",
+            Some("patient-1".to_string()),
+            "ambient_doc.generate_note",
+            "output missing required SOAP section",
+            "input-hash-abc",
+            "output-hash-bad",
+        );
+        store.append(&mut event).await.unwrap();
+
+        let fetched = store.get(event.id).await.unwrap().expect("event should exist");
+        assert_eq!(fetched.policy_decision, "verification_failed");
+        assert_eq!(fetched.output_hash, "output-hash-bad");
+    }
+
+    #[tokio::test]
+    async fn mixed_outcome_chain_verifies() {
+        let store = test_store().await;
+
+        let mut e1 = AuditEvent::denied("a", None, "act1", "no cap", "ih1");
+        store.append(&mut e1).await.unwrap();
+
+        let mut e2 = AuditEvent::new("a", None, "act2", "allow", "ih2", "oh2", "");
+        store.append(&mut e2).await.unwrap();
+
+        let mut e3 = AuditEvent::agent_error("a", None, "act3", "timeout", "ih3");
+        store.append(&mut e3).await.unwrap();
+
+        assert!(store.verify_chain().await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn failure_events_chain_correctly() {
+        let store = test_store().await;
+
+        let mut e1 = AuditEvent::new("a", None, "act1", "allow", "ih", "oh", "");
+        store.append(&mut e1).await.unwrap();
+
+        let mut e2 = AuditEvent::for_outcome("a", None, "act2", &AuditOutcome::PolicyDenied { reason: "denied".into() }, "ih", "");
+        store.append(&mut e2).await.unwrap();
+
+        let mut e3 = AuditEvent::for_outcome("a", None, "act3", &AuditOutcome::AgentError { reason: "timeout".into() }, "ih", "");
+        store.append(&mut e3).await.unwrap();
+
+        // Chain should be valid even with mixed success/failure events
         assert!(store.verify_chain().await.unwrap());
     }
 }

@@ -19,10 +19,10 @@ COPY crates/cliniclaw-policy/policies/ /app/policies/
 
 WORKDIR /app
 
-ENV LISTEN_ADDR=0.0.0.0:3000
+ENV LISTEN_ADDR=0.0.0.0:3001
 ENV CLINICLAW_MOCK=true
 ENV DATABASE_URL=sqlite:cliniclaw.sqlite
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["cliniclaw"]

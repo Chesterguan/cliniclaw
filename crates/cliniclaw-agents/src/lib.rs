@@ -6,6 +6,7 @@ pub mod error;
 pub mod lab_review;
 pub mod llm;
 pub mod mock_claude;
+pub mod model;
 pub mod nurse_assess;
 pub mod ollama;
 pub mod order_entry;
@@ -20,6 +21,10 @@ pub use discharge_plan::{DischargePlanAgent, DischargePlanInput, DischargePlanOu
 pub use error::AgentError;
 pub use lab_review::{LabReviewAgent, LabReviewInput, LabReviewOutput};
 pub use llm::LlmCapability;
+pub use model::{
+    ApprovalStatus, DriftConfig, DriftStatus, InMemoryDriftMonitor, ModelModality,
+    ModelProvenance, ModelRegistry, ModelResult, RegisteredModel, TokenUsage,
+};
 pub use mock_claude::MockClaudeCapability;
 pub use nurse_assess::{NurseAssessAgent, NurseAssessInput, NurseAssessOutput};
 pub use ollama::OllamaCapability;

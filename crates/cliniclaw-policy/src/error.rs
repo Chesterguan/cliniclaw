@@ -43,4 +43,7 @@ pub enum PolicyError {
 
     #[error("policy evaluation error: {0}")]
     EvaluationError(String),
+
+    #[error("policy configuration error: {0}")]
+    ConfigError(String),
 }

@@ -61,7 +61,7 @@ impl Capability {
         if self.is_expired() {
             return Err(PolicyError::CapabilityExpired {
                 capability: self.name.clone(),
-                expired_at: self.expires_at.unwrap(),
+                expired_at: self.expires_at.expect("expires_at must be Some when is_expired() is true"),
             });
         }
         if self.actor_id != actor_id {
