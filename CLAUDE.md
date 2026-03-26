@@ -1,6 +1,6 @@
 # ClinicClaw — Project Instructions
 
-> Last updated: 2026-03-11
+> Last updated: 2026-03-24
 
 ## What ClinicClaw Is
 
@@ -51,10 +51,10 @@ Think: what a modern HIS looks like when AI is a first-class citizen, not an aft
 | Crate | Purpose |
 |-------|---------|
 | `cliniclaw-fhir` | FHIR R4 client, resource types, Synthea bundle importer |
-| `cliniclaw-agents` | 8 AI agents + LlmCapability trait (Claude/Ollama/Mock) |
-| `cliniclaw-policy` | OPA Rego policy engine (regorus) + clinical skill metadata (TOML) |
+| `cliniclaw-agents` | 8 AI agents + LlmCapability trait (Claude/Ollama/Mock) + ModelRegistry + DriftMonitor |
+| `cliniclaw-policy` | OPA Rego policy engine (regorus) + clinical skill metadata (TOML) + load-time validation |
 | `cliniclaw-api` | axum HTTP API server (20+ routes, SSE events, demo orchestrator) |
-| `cliniclaw-persist` | SQLite/Postgres audit store with SHA-256 hash chain |
+| `cliniclaw-persist` | SQLite/Postgres audit store with SHA-256 hash chain + AuditOutcome for failure paths |
 | `cliniclaw-kernel` | Workspace/turn store, AgentEvent system, EventEmitter |
 | `cliniclaw-tui` | Terminal UI with hospital view, live metrics, event detail |
 
@@ -110,6 +110,17 @@ VERITAS itself (at /Volumes/extraSupply/veritas) remains the synchronous referen
 
 When in doubt: follow VERITAS design decisions. Deny by default. Audit everything.
 Evidence over intelligence. Control over autonomy.
+
+## VERITAS Alignment (as of 2026-03-24)
+
+ClinicClaw now aligns with the VERITAS ModelCapability RFC and hardened runtime:
+
+- **ModelRegistry** — deny-by-default model governance with `ApprovalStatus` lifecycle (Approved/Pending/Revoked/Experimental)
+- **InMemoryDriftMonitor** — rolling-window confidence tracking, auto-revokes models that drift past threshold
+- **LlmCapability::call_with_metadata()** — structured output with confidence, latency, token usage
+- **AuditOutcome** — failure-path audit (PolicyDenied, AgentError, VerificationFailed, AwaitingApproval)
+- **PolicyEngine::validate()** — load-time config validation (duplicate skill IDs, capability gate checks, Rego smoke tests)
+- **11 API integration tests** — health, auth, worklist, audit, triage, workspace routes
 
 ## Code Guidelines
 
