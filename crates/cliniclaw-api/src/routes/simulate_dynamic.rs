@@ -5,6 +5,8 @@ use std::sync::Arc;
 
 use axum::extract::{Json, State};
 use axum::http::StatusCode;
+use tokio::sync::Semaphore;
+use tokio::task::JoinSet;
 
 use cliniclaw_kernel::{AgentEventType, EventEmitter};
 
@@ -85,6 +87,11 @@ pub async fn run_dynamic_simulation(
 
     let mut summaries = Vec::new();
     let limit = body.max_pathways.min(20);
+
+    // Bounded concurrency — prevents overwhelming the LLM backend.
+    // Semaphore permits = max_pathways (capped at 20).
+    let semaphore = Arc::new(Semaphore::new(limit));
+    let mut join_set: JoinSet<(String, Result<(), String>)> = JoinSet::new();
 
     for entry in enc_entries.iter().take(limit) {
         let Some(enc) = entry.get("resource") else { continue };
@@ -171,12 +178,40 @@ pub async fn run_dynamic_simulation(
         let s = state.clone();
         let conds = condition_displays;
         let meds = medications;
-        tokio::spawn(async move {
+        let sem = semaphore.clone();
+        let eid = enc_id.clone();
+        join_set.spawn(async move {
+            // Acquire semaphore permit — bounds concurrent pathways.
+            // Released automatically when _permit is dropped (task completes or fails).
+            let _permit = match sem.acquire_owned().await {
+                Ok(p) => p,
+                Err(_) => return (eid, Err("semaphore closed".into())),
+            };
             dynamic_pathway(s, enc_id, patient_id, patient_display, enc_class, conds, meds, agents, base_delay_ms, phase_delay_ms).await;
+            (eid, Ok(()))
         });
     }
 
     let pathway_count = summaries.len();
+
+    // Collect results in background — don't block the HTTP response.
+    // Log failures but don't fail the response (pathways are independent).
+    tokio::spawn(async move {
+        while let Some(result) = join_set.join_next().await {
+            match result {
+                Ok((eid, Ok(()))) => {
+                    tracing::debug!(encounter_id = %eid, "pathway completed");
+                }
+                Ok((eid, Err(e))) => {
+                    tracing::warn!(encounter_id = %eid, error = %e, "pathway failed");
+                }
+                Err(e) => {
+                    tracing::warn!(error = %e, "pathway task panicked");
+                }
+            }
+        }
+    });
+
     Ok(Json(DynamicSimulateResponse {
         status: "running".to_string(),
         pathways: pathway_count,

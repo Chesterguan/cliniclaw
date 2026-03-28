@@ -1,3 +1,4 @@
+pub mod pipeline;
 pub mod ambient_doc;
 pub mod cds;
 pub mod claude;
@@ -32,6 +33,10 @@ pub use order_entry::{OrderEntryAgent, OrderEntryInput, OrderEntryOutput};
 pub use pharmacy_review::{PharmacyReviewAgent, PharmacyReviewInput, PharmacyReviewOutput};
 pub use prior_auth::{PriorAuthAgent, PriorAuthInput, PriorAuthOutput, PriorAuthStatus};
 pub use triage_assess::{TriageAssessAgent, TriageAssessInput, TriageAssessOutput};
+pub use pipeline::{
+    AgentMiddleware, AgentPipeline, PhiAuditMiddleware, PipelineContext, PipelineResult,
+    RateLimitMiddleware, TokenBudgetMiddleware,
+};
 
 // Re-export kernel types used in agent outputs
 pub use cliniclaw_kernel::Confidence;

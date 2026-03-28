@@ -1,0 +1,31 @@
+# ClinicClaw Configuration
+# Copy to cliniclaw.toml and adjust for your deployment.
+# Environment variables override values in this file.
+
+[server]
+listen_addr = "0.0.0.0:3001"
+
+[llm]
+# Backend: "mock" (deterministic), "ollama" (local), "claude" (Anthropic API)
+backend = "mock"
+ollama_model = "mistral-small"
+ollama_url = "http://localhost:11434"
+claude_model = "claude-sonnet-4-20250514"
+# Pipeline rate limiting and token budget
+max_concurrent_calls = 4
+max_tokens_per_encounter = 50000
+
+[fhir]
+# Synthea FHIR bundle directory (mock/ollama mode)
+# synthea_dir = "data/synthea/fhir"
+# Live FHIR server URL (claude mode)
+base_url = "http://localhost:8103/fhir/R4"
+
+[database]
+url = "sqlite:cliniclaw.sqlite"
+
+[policy]
+policies_dir = "crates/cliniclaw-policy/policies"
+
+[cors]
+origins = ["http://localhost:3000"]
