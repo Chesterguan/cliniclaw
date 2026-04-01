@@ -1,6 +1,6 @@
 # ClinicClaw — Project Instructions
 
-> Last updated: 2026-03-24
+> Last updated: 2026-04-01
 
 ## What ClinicClaw Is
 
@@ -152,3 +152,4 @@ ClinicClaw now aligns with the VERITAS ModelCapability RFC and hardened runtime:
 - Synthea: https://github.com/synthetichealth/synthea (synthetic patient data generator)
 - SMART-on-FHIR: https://github.com/smart-on-fhir (app auth standard)
 - VERITAS: /Volumes/extraSupply/veritas (trust layer reference implementation)
+- VeritasBench: /Volumes/extraSupply/veritasbench (governance benchmark — 500 scenarios, 7 types)
