@@ -9,6 +9,8 @@
 .env
 .env.*
 !.env.example
+web/.env*
+!web/.env.example
 *.pem
 *.key
 *.p12
