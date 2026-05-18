@@ -1,0 +1,111 @@
+name: Build CV Copilot Proposal (manual)
+
+# Manual-trigger only. PROPOSAL.md is the single source of truth.
+# This workflow regenerates the shareable .docx + .html from the Markdown
+# source and publishes them as GitHub Release assets. It NEVER commits the
+# generated binaries: git history stays clean and reviewable on the Markdown.
+# Inbound Word edits are reconciled by hand back into PROPOSAL.md (see
+# docs/proposals/2026-05-18-cv-surgical-copilot-jeng/BUILD.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release tag suffix (blank = date+run number)"
+        required: false
+        default: ""
+      prerelease:
+        description: "Mark the Release as a pre-release (draft-quality build)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # required to create the Release
+
+concurrency:
+  group: build-proposal
+  cancel-in-progress: false
+
+env:
+  PROP_DIR: docs/proposals/2026-05-18-cv-surgical-copilot-jeng
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+          echo "pandoc version: $(pandoc -v | head -1)"
+          # build_share.py uses --embed-resources (needs pandoc >= 3.1)
+          pandoc -v | head -1 | grep -qE 'pandoc 3\.' || { echo "::error::pandoc 3.x required"; exit 1; }
+
+      - name: Resolve a Chrome for mermaid-cli
+        run: |
+          # GitHub ubuntu runners ship Google Chrome stable; use it directly
+          # (avoids flaky puppeteer chromium downloads). Fallback to puppeteer.
+          if command -v google-chrome >/dev/null; then
+            echo "PUPPETEER_EXECUTABLE_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+            echo "using $(command -v google-chrome) ($(google-chrome --version))"
+          else
+            npx -y puppeteer@23 browsers install chrome
+            echo "PUPPETEER_EXECUTABLE_PATH=$(npx -y puppeteer@23 browsers list 2>/dev/null | awk '{print $NF}' | head -1)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build .docx + .html from PROPOSAL.md
+        run: |
+          python3 "$PROP_DIR/build_share.py"
+          ls -la "$PROP_DIR/dist"
+          test -s "$PROP_DIR/dist/ClinicClaw-CV-Copilot-Proposal.docx"
+          test -s "$PROP_DIR/dist/ClinicClaw-CV-Copilot-Proposal.html"
+
+      - name: Compute release tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "tag=proposal-${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=proposal-build-$(date -u +%Y%m%d)-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload run artifacts (always available, even without a Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-copilot-proposal
+          path: |
+            ${{ env.PROP_DIR }}/dist/ClinicClaw-CV-Copilot-Proposal.docx
+            ${{ env.PROP_DIR }}/dist/ClinicClaw-CV-Copilot-Proposal.html
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish GitHub Release with the built files
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "CV Copilot Proposal — ${{ steps.tag.outputs.tag }}"
+          prerelease: ${{ github.event.inputs.prerelease }}
+          body: |
+            Auto-built from `PROPOSAL.md` at ${{ github.sha }}.
+
+            **Source of truth is the Markdown.** These files are generated,
+            disposable exports. Do not commit them; do not edit the `.docx`
+            and expect it to round-trip — reconcile Word edits by hand back
+            into `PROPOSAL.md` (see `BUILD.md`). The `.docx` still contains
+            visible `⚑ CONFIRM` action items for the team to resolve.
+          files: |
+            ${{ env.PROP_DIR }}/dist/ClinicClaw-CV-Copilot-Proposal.docx
+            ${{ env.PROP_DIR }}/dist/ClinicClaw-CV-Copilot-Proposal.html

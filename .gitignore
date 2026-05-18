@@ -51,3 +51,8 @@ demo.mp4
 tests/fixtures/real/
 linkedin-posts.md
 *.png
+
+# Generated proposal exports — PROPOSAL.md is the source of truth.
+# Built .docx/.html are published as GitHub Release assets, never committed
+# (git can't meaningfully diff binaries). build_share.py stays tracked.
+docs/proposals/2026-05-18-cv-surgical-copilot-jeng/dist/
