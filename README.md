@@ -144,6 +144,12 @@ NeMo Guardrails             50%       46%         0%          0%
 Bare LLM                    49%       46%         0%          0%
 ```
 
+## Related Projects
+
+- **[AesculTwin](https://github.com/Chesterguan/AesculTwin)** — The Surgical Second Brain. A SMART on FHIR application for cardiovascular surgeons, featuring RAG-powered knowledge base, surgical video analysis, and performance analytics. Grant proposals (including the CV Surgical Copilot proposal for Dr. Eric I. Jeng) live in that repo.
+- **[VERITAS](https://github.com/Chesterguan/veritas)** — The trust-layer reference implementation that ClinicClaw's governance is built on.
+- **[VeritasBench](https://github.com/Chesterguan/veritasbench)** — Governance benchmark (500 scenarios, 7 types) used to validate ClinicClaw's policy compliance.
+
 ## License
 
 Apache-2.0
