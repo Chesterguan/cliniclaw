@@ -1,106 +1,140 @@
-# VERITAS Long-Horizon Governance — Experiment Results
+# Does a governance layer keep AI safe over the long haul?
 
-> Date: 2026-06-05 · Engine: `cliniclaw-sim` · Run: mock backend, seed 2026, copy-forward rate 0.4, 56 epi-weeks (two respiratory seasons), 50-patient chronic panel
-> Reproduce: `cargo run -p cliniclaw-sim --bin run_experiment` → writes `target/sim/gate_on.json`, `target/sim/gate_off.json`
-> Design: `docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md` · Invariants: `…/2026-06-05-harm-oracle-invariants.md`
+### A ClinicClaw experiment, inspired by Emergence World
 
-## Question
+**The short version:** We ran a simulated hospital for two flu seasons. An AI re-prescribed
+patients' medications, and — like a tired clinician copy-pasting a chart on a busy day — it made more
+transcription errors as each season got busier, sometimes turning a safe home medication into a dangerous
+overdose. We ran the same two seasons twice: once with **VERITAS** (a policy guardrail) switched on, once with
+it off. With the guardrail on, **76.5% of the unsafe orders were stopped before they reached a patient.**
 
-Over a long horizon, with drift accumulating in the clinical workflow, does the VERITAS policy layer hold the
-action boundary where individual model alignment would not? This is a **containment** question (did an unsafe
-action reach a patient?), not a behavioral-judgment one.
+![Headline result](assets/headline.png)
 
-## What was run
+> Run details: `cliniclaw-sim` engine, mock backend, seed 2026, 56 epi-weeks (two seasons), 50 chronic
+> patients. Reproduce with `cargo run -p cliniclaw-sim --bin run_experiment`.
 
-Two real respiratory seasons (CDC ILINet-style weekly surveillance curve) drive a per-week **surge level**.
-Surge raises the **copy-forward error rate**: a carried home medication is mis-transcribed into a high-alert
-drug (warfarin) at an overdose — the propagated documentation error. The order under test is the
-re-prescription of the (possibly corrupted) medication list. A `HarmOracle` flags clinical invariant
-violations (dose ceiling, drug–drug, renal, allergy, drug–disease, duplicate). The `VeritasGate` decides on a
-**governance** signal — whether the proposed drug is a high-alert class — and routes those to human approval.
-Two arms run on the identical seed: **gate-on** (VERITAS enforced) vs **gate-off** (ungoverned control).
+---
 
-**Validity note.** The gate predicate (high-alert drug *class*) is deliberately **independent** of the
-oracle's clinical predicates (dose/interaction/renal/allergy). An earlier version keyed both on the same
-static `egfr<30` flag, which made the gap tautological and drift-invariant; that was caught in review and
-fixed. The engine carries a guard test, `gap_is_driven_by_drift_not_tautology`, that proves **zero drift →
-zero unsafe orders in both arms**, and **drift → a strict gate-on < gate-off gap**. So the result below is not
-an artifact of co-keyed predicates.
+## 1. What we studied  (实验对象)
 
-## Headline result
+Think of it as a tiny hospital that runs for two winters. The cast:
 
-Over 56 weeks, 277 encounters, **834 proposed orders**:
+| Who / what | Plain description |
+|---|---|
+| **The clock** | Two real respiratory seasons. Each week has a "surge level" taken from a CDC-style flu surveillance curve — autumn is quiet, mid-winter is the peak. |
+| **The patients** | 50 chronic patients (heart failure, COPD, kidney disease, diabetes) who **keep coming back**, several times each season. |
+| **The AI** | At each visit it re-prescribes the patient's medication list. |
+| **The drift** | As the week gets busier, the chance of a **copy-paste transcription error** rises. When it happens, a safe home med is mis-transcribed into a **high-alert drug at an overdose** — the kind of error that actually harms people. |
+| **VERITAS** | The guardrail. It can let an order through, or **hold it for a human to approve**. |
+| **The judge** | A separate "harm oracle" that decides whether an order is actually unsafe (wrong dose, dangerous drug interaction, contraindicated for this patient, etc.). |
 
-| Metric | Gate-OFF (ungoverned) | Gate-ON (VERITAS) |
-|---|---:|---:|
-| Unsafe orders that **landed on a patient** | **213** | **50** |
-| Unsafe orders **caught at the gate** | — | **163** |
-| Unsafe-order rate (of 834) | 25.5% | 6.0% |
+The key idea: **the AI is never trusted to police itself.** The drift lives in the chart, not in the AI's
+"head" — each visit the AI simply re-reads the chart and re-prescribes, exactly like a real clinician.
 
-**VERITAS prevented 163 of 213 unsafe orders from reaching patients — a 76.5% reduction.**
+---
 
-## H1 — Containment (supported)
+## 2. How the experiment works  (实验设计)
 
-Gate-on landed-unsafe (50) is far below gate-off (213); the 163-action gap is the quantified value of the
-policy layer. Per season, the gap is consistent:
+```mermaid
+flowchart LR
+    A["Flu surge<br/>(real weekly data)"] --> B["More copy-paste<br/>errors on busy weeks"]
+    B --> C["Safe home med →<br/>dangerous overdose"]
+    C --> D["AI re-prescribes<br/>from the wrong chart"]
+    D --> G{"VERITAS<br/>guardrail"}
+    G -->|"high-alert drug →<br/>hold for approval"| H["Blocked ✋"]
+    G -->|"ordinary order →<br/>allow"| P["Reaches the patient"]
+    H -.-> O["Harm oracle<br/>counts what was unsafe"]
+    P -.-> O
+```
 
-| | Gate-OFF landed | Gate-ON landed | Caught at gate |
-|---|---:|---:|---:|
-| Season 1 (wk 0–27) | 98 | 24 | 74 |
-| Season 2 (wk 28–55) | 115 | 26 | 89 |
+We run this **twice on the identical random seed** — once with the guardrail **on** (governed), once **off**
+(ungoverned, the control). Then we count one thing: **how many unsafe orders actually reached a patient.** The
+difference between the two runs is the value the guardrail added.
 
-## H2 — Two layers, neither sufficient (supported, and this is the honest finding)
+**Why this isn't rigged (the part we were careful about).** It would be easy to cheat: have the guardrail
+block exactly what the judge flags, then claim a perfect score. We deliberately did the opposite —
 
-Gate-on does **not** reach zero — **50 unsafe orders still land** under VERITAS. These are clinical
-contraindications carried in patients' *own* home medications (e.g. a renally-contraindicated metformin in a
-low-eGFR patient, an NSAID in CHF). They are **not high-alert by drug class**, so VERITAS — a *governance*
-gate — does not hold them. This is the designed "**necessary but not sufficient**" result: the policy gate
-catches the governance-relevant subset (the 163 high-alert overdoses drift produced), while the residual 50
-clinical-quality violations require the second layer (DriftMonitor / CDS), which is not yet wired (Phase 2).
-A clean 213→0 would have been *less* honest — it would imply a policy gate can substitute for clinical
-decision support, which it cannot.
+- the **guardrail** decides by *governance* (is this a high-alert class of drug that should need sign-off?),
+- the **judge** decides by *clinical rules* (is the dose too high? a bad interaction? contraindicated?).
 
-## H3 — Drift scales with the real surge signal (supported)
+They use **different criteria**, so when the guardrail catches something, it's a real catch, not a tautology.
+We also built in an automatic check that proves: **with no drift, there are zero unsafe orders in both runs**,
+and **only when drift is introduced does a gap appear.** (An earlier version *was* accidentally circular; a
+code review caught it and we fixed it before producing these numbers.)
 
-The drift-induced catches track the surveillance curve:
+---
 
-- **Pearson(surge_level, caught-at-gate) = 0.62** — moderate-strong positive correlation.
-- The **baseline** clinical contraindications (gate-on landed) are surge-**independent**:
-  Pearson(surge, baseline) = 0.11 ≈ 0. Exactly as expected — those come from static patient records, not drift.
-- Peak surge weeks carry the most drift: 2023-W47 (surge 0.79) → 10 catches; 2025-W02 (surge 1.00) → 8;
-  2024-W48 (0.90) → 9. The zero-surge week 2024-W40 → **0** catches.
+## 3. What we found  (实验结果)
 
-This is the A→B coupling working as designed: the real epi signal drives the drift rate, which drives the
-unsafe-order rate, which VERITAS absorbs at the boundary.
+Over 56 weeks the AI proposed **834 orders** across **277 visits**.
 
-## H4 — Cross-season carryover (NOT demonstrated — honest limitation)
+![From 834 orders to the 50 that reached patients](assets/funnel.png)
 
-Season 2 totals are modestly higher than Season 1 (115 vs 98 landed), but this is explained by Season 2's
-**higher surge peaks** (W48 0.90, W01 0.93, W02 1.00 vs Season 1's W47 0.79), **not** by accumulated record
-pollution. In this MVP each encounter re-reads the patient's *original* home-med list, so a copy-forward error
-is **transient per visit** — it does not persist back into a record that later visits read. True cross-season
-carryover requires a persistent per-patient record that corruption writes into (the `PatientState` pollution
-ledger exists but is not yet fed back into the read path). **H4 remains untested.** Phase 2.
+### Finding 1 — The guardrail stopped most unsafe orders
 
-## Limitations (read before quoting these numbers)
+Without VERITAS, **213** unsafe orders reached patients. With VERITAS, only **50** did — the guardrail held
+**163** of them for human approval. That's a **76.5% reduction**, and it was steady across both seasons (Season
+1: 98 → 24; Season 2: 115 → 26).
 
-- **Single seed.** Results are for seed 2026; the headline gap should be reported as a distribution over
-  multiple seeds before any external claim. (The *direction* — gate-on < gate-off, and the anti-tautology
-  property — holds for all seeds by construction/test.)
-- **Mock LLM.** The order is modeled as a direct re-prescription of the corrupted record, not an
-  input-sensitive LLM round-trip (the mock backend is input-insensitive). Real-LLM slice runs are Phase 2.
-- **No record accumulation.** Drift is per-visit, not persistent (see H4).
-- **Stylized reference data.** Oracle interaction/renal/dose-ceiling tables and the copy-forward rate are
-  seeded with representative values pending calibration against the cited literature (ISMP, Beers, CDC,
-  copy-paste prevalence studies).
-- **Synthetic panel.** 50 Synthea-style chronic patients; not a validated cohort.
-- **Scope.** Medication pathway only; oracle Tier-1 invariants #1–6; one governance gate (high-alert class).
+### Finding 2 — The danger rose and fell with the flu season
 
-## Bottom line
+This is the heart of it. The unsafe orders weren't random — they **tracked the real flu surge**. Busy peak
+weeks produced the most dangerous orders; quiet weeks produced almost none (the calmest week: zero).
 
-On a long-horizon, drift-driven workload, an external, deny-by-default governance gate prevented **76.5%** of
-unsafe orders from reaching patients — and the result is demonstrably driven by drift (correlated with the
-real surge signal) rather than by circular wiring. The residual 23.5% are clinical-quality failures outside a
-governance gate's reach, empirically motivating the second (drift-monitoring) layer. This is the ClinicClaw
-evidence for the VERITAS thesis that **safety must be enforced externally and verifiably, because it cannot be
-assumed from the agent — and that a policy gate alone is necessary but not sufficient.**
+![Drift tracks the flu surge](assets/drift_vs_surge.png)
+
+The correlation between surge level and orders-blocked is **r = 0.62**. Meanwhile the *baseline* problems (see
+Finding 3) stayed flat regardless of the season (r = 0.11 ≈ none) — exactly what you'd expect, because those
+don't come from drift. In other words: **the real-world signal drove the drift, the drift drove the danger,
+and the guardrail absorbed it.**
+
+### Finding 3 — The guardrail was *not* enough on its own (the honest part)
+
+Notice VERITAS did **not** get to zero — **50 unsafe orders still reached patients.** These weren't failures of
+the guardrail; they're a **different kind of problem**. They are clinical contraindications hiding in the
+patients' *own* medication lists (a kidney-impaired patient's metformin, an NSAID in heart failure). Those
+drugs aren't "high-alert" by class, so a *governance* guardrail has no reason to stop them — that's a job for a
+**clinical** safety layer (drug-by-patient checking), which we have not wired up yet.
+
+This is the real lesson, and it's more useful than a perfect score would have been: **a policy guardrail is
+necessary but not sufficient.** It reliably catches the governance-relevant danger that drift creates, but you
+still need a second, clinical layer for the rest. A clean "213 → 0" would have falsely implied a policy gate
+can replace clinical judgment. It can't.
+
+### What we did **not** show
+
+We did **not** demonstrate *cross-season carryover* (an error made in season 1 still biting in season 2). In
+this version the AI re-reads each patient's original chart every visit, so a transcription error is
+**temporary** — it doesn't get written back into the record for later visits to inherit. Season 2 looks
+slightly worse only because its flu peaks were higher, not because errors accumulated. Making the record
+**persist** is the next step.
+
+---
+
+## 4. Bottom line  (结论)
+
+Over a long, drift-driven workload, an external, deny-by-default governance layer stopped **76.5%** of unsafe
+medication orders from reaching patients — and we can show the result was **driven by the drift** (it rises and
+falls with the real flu curve), not by circular wiring. The **23.5% that still got through** were a different
+class of clinical error that a governance gate isn't designed to catch, which is itself the evidence for adding
+a second safety layer.
+
+The takeaway lines up with what Emergence World argued for general agents, now shown in a clinical setting:
+**you cannot assume safety from the agent — it has to be enforced from the outside, verifiably — and one layer
+is not enough.**
+
+---
+
+## Caveats — please read before quoting these numbers
+
+- **One random seed.** These are seed-2026 figures. The *direction* (governed < ungoverned) and the
+  no-drift-no-gap property hold for every seed by construction, but the exact 163 should be reported as a
+  range over many seeds before any external claim.
+- **Simulated, not real.** Mock AI backend (the order is modeled as a direct re-prescription, not a real LLM
+  call yet); 50 synthetic Synthea-style patients; reference tables (drug interactions, dose limits, copy-paste
+  rate) are representative placeholders pending calibration against the cited literature (ISMP, Beers, CDC).
+- **Scope.** Medication-ordering pathway only; the clinical second layer, persistent records (carryover), a
+  real LLM in the loop, and a live visualization are all next-phase work.
+
+**Reproduce:** `cargo run -p cliniclaw-sim --bin run_experiment` → writes `target/sim/gate_on.json` and
+`gate_off.json`. Design and methods: `docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md`.
