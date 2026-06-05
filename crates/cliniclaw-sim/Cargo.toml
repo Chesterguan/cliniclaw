@@ -1,0 +1,22 @@
+[package]
+name = "cliniclaw-sim"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+cliniclaw-fhir = { path = "../cliniclaw-fhir" }
+cliniclaw-policy = { path = "../cliniclaw-policy" }
+cliniclaw-persist = { path = "../cliniclaw-persist" }
+cliniclaw-agents = { path = "../cliniclaw-agents" }
+cliniclaw-kernel = { path = "../cliniclaw-kernel" }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"
+rand = "0.8"
+
+[dev-dependencies]
+tokio = { workspace = true }

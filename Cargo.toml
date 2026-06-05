@@ -8,6 +8,7 @@ members = [
     "crates/cliniclaw-agents",
     "crates/cliniclaw-api",
     "crates/cliniclaw-tui",
+    "crates/cliniclaw-sim",
 ]
 
 [workspace.package]
