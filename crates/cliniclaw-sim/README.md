@@ -1,9 +1,9 @@
 # cliniclaw-sim — Long-Horizon Governance Drift Engine
 
 `cliniclaw-sim` is the long-horizon governance drift engine for ClinicClaw. It replays two real
-respiratory seasons (56 epi-weeks) over a longitudinal patient panel of 50 chronic high-utilizers,
-gates every medication order through VERITAS, and emits a gate-on vs gate-off counterfactual whose
-gap quantifies the policy layer's value. Both arms run from an identical deterministic seed; the
+respiratory seasons (56 epi-weeks) over a longitudinal panel of 50 chronic high-utilizers, gates
+every medication order through VERITAS, and emits a gate-on vs gate-off counterfactual whose gap
+quantifies the policy layer's value. Both arms run from an identical deterministic seed; the
 divergence between them is the measured effect of VERITAS — not noise.
 
 ## The Question It Answers
@@ -12,36 +12,48 @@ divergence between them is the measured effect of VERITAS — not noise.
 > layer hold the action boundary where individual model alignment would not?
 
 This is a *containment* question, not a behavioral-judgment question. We do not assess whether
-agents made good choices within the allowed action space. We ask: did any policy-violating action
-reach a patient? The gate-on arm answers "no" by construction; the gate-off arm shows how many
-would have landed without the policy layer. The gap is the claim.
+agents made good choices within the allowed action space. We ask: did a policy-violating action
+reach a patient? The gate-on arm holds the high-alert subset by construction; the gate-off arm
+shows how many of those would have landed without the policy layer. The gap is the claim.
 
 ## Drift Model (A→B)
 
 ```
 Real epi feed (A)
-  → case-mix hardens + visit volume rises
+  → visit volume / case-mix hardens on surge weeks
   → copy-forward error rate rises  (A drives B's rate, anchored to copy-paste literature)
-  → AmbientDoc / OrderEntry read the prior chart as fact
-  → errors propagate through the problem list and medication list (B)
-  → FHIR record is polluted
-  → downstream unsafe orders are generated
-  → VeritasGate [ blocks | passes ]
-       (in-bounds quality drift is caught by DriftMonitor on a separate channel)
+  → a copy-forward error MIS-TRANSCRIBES a home med into a high-alert drug at an overdose
+  → that corrupted entry lives in the shared FHIR record
+  → re-prescription carries the corrupted record forward as the new order (B)
+  → VeritasGate [ holds for approval | passes ]
+       (in-bounds quality drift is a separate channel, caught by DriftMonitor — Phase 2)
 ```
 
-**A — Epidemiological signal:** a real weekly surveillance series (CDC ILINet / RSV-NET /
-NSSP-style) is vendored in `data/epi/`. The weekly value sets arrival volume and acuity mix,
-pushing agents outside their validated envelope on surge weeks.
+**A — Epidemiological signal.** A real weekly surveillance series (CDC ILINet / RSV-NET /
+NSSP-style) is vendored in `data/epi/`. The weekly value sets arrival volume and acuity mix on
+surge weeks, pushing the copy-forward process outside its baseline envelope.
 
-**B — Copy-forward propagation:** surge level modulates the copy-forward error rate — the only
-coupling between A and B, anchored to documented EHR copy-paste prevalence statistics, not to a
-"fatigued agent" heuristic. Agents are stateless; they re-derive each decision from a (possibly
-polluted) FHIR record. Drift lives in the record, not in the agents.
+**B — Copy-forward propagation.** Surge level modulates the copy-forward error rate — the only
+coupling between A and B, anchored to documented EHR copy-paste prevalence, not a "fatigued agent"
+heuristic. On a corruption event a home med (e.g. atorvastatin) is mis-transcribed into warfarin
+(RxNorm 11289) dosed at 50 mg — five times the 10 mg ceiling. Agents are stateless; they re-derive
+each order from the (possibly polluted) record. **So the unsafe order is *caused* by drift and
+scales with surge.** Drift lives in the record, not in the agents.
 
-**VERITAS gates at the action boundary.** In-bounds quality drift (a legal-but-degraded order,
-confidence quietly collapsing) is a distinct class caught by `DriftMonitor` (Phase 2), not by the
-policy gate. The two layers cover non-overlapping failure modes.
+**Honesty note (MVP).** In this MVP the order is modeled as a *direct re-prescription* of the
+corrupted carried record — **not an LLM round-trip**. The mock backend is input-insensitive, so
+routing the corrupted record through it would not change the output; wiring a real,
+input-sensitive LLM agent into the order step is Phase 2.
+
+## How VERITAS Gates (and why the result is non-circular)
+
+VERITAS gates on a **governance signal — the high-alert drug class** (warfarin, insulin) — and
+routes those orders to human approval. This is **independent of the oracle's clinical checks**
+(dose ceiling, drug-drug interaction, renal contraindication, allergy). The gate and the
+HarmOracle key on *different predicates*: the gate asks "is this a high-alert class?"; the oracle
+asks "is this order clinically harmful?". Because the catch predicate is not the harm predicate,
+the measured gap is not a tautology — it is the real overlap between governed classes and
+drift-induced harm.
 
 ## Run It
 
@@ -50,39 +62,53 @@ cargo run -p cliniclaw-sim --bin run_experiment
 ```
 
 Writes `target/sim/gate_on.json` and `target/sim/gate_off.json`, then prints the gap summary to
-stdout.
+stdout. The engine uses the deterministic mock backend (`CLINICLAW_MOCK=true` is implied). Seed is
+2026. Re-running on the same commit produces identical output.
 
-The engine uses the deterministic mock backend (`CLINICLAW_MOCK=true` is implied). Seed is 2026.
-Re-running on the same commit produces identical output.
-
-## Result (2026-06-05, mock backend, seed 2026)
+## Result (2026-06-05 · mock backend · seed 2026 · copyfwd 0.4 · 56 weeks)
 
 ```
-horizon       : 2 seasons · 56 epi-weeks
-panel         : 50 chronic patients (CHF / COPD / CKD / diabetes / polypharmacy)
-renal-at-risk : 16 patients with low-eGFR (metformin contraindicated)
+horizon : 2 seasons · 56 epi-weeks
+panel   : 50 chronic patients (CHF / COPD / CKD / diabetes / polypharmacy)
 
-arm           gate-off   gate-on   caught-at-gate
-landed-unsafe      90         0            90
-
-VERITAS prevented 90 unsafe actions from reaching patients.
+                gate-off   gate-on   caught-at-gate
+landed-unsafe       213        50            163
 ```
 
-**Drift mechanism:** the real epi surveillance series drives the surge level; surge raises the
-copy-forward error rate; errors propagate into the problem and medication lists; the HarmOracle
-flags renally-contraindicated metformin orders for the 16 low-eGFR patients; VERITAS denies those
-orders in the gate-on arm and lets them through in the gate-off arm. The 90-unit gap is the
-directly measured value of the policy layer over two seasons.
+**The gap = 213 − 50 = 163.** Those 163 are the drift-induced **high-alert** orders (warfarin
+overdoses produced by copy-forward corruption) that VERITAS held for approval in the gate-on arm
+and that landed in the gate-off arm. They are the directly measured value of the policy layer over
+two seasons.
+
+**The 50 that land in *both* arms are the honest part.** Many patients carry their own clinical
+contraindications — a low-eGFR patient's metformin, an NSAID against CHF, a drug-drug interaction.
+The HarmOracle flags these, but they are **not high-alert class**, so VERITAS does not govern them
+and they land in both arms. This is the honest H2 result: **the governance gate is *necessary, not
+sufficient*.** It contains the class it governs (high-alert) and makes no claim over clinical
+contraindications outside that class — which is precisely why the gap is credible rather than
+inflated.
+
+## Validity
+
+The engine ships the unit test `gap_is_driven_by_drift_not_tautology`, which proves:
+
+- **zero drift → zero unsafe** (copyfwd 0.0 lands 0 unsafe orders in both arms), and
+- **drift → strict `gate-on < gate-off`** (copyfwd 1.0 lands unsafe orders in the ungoverned arm,
+  strictly fewer in the governed arm, with genuine gate catches recorded).
+
+Because the gate predicate (high-alert class) and the harm predicate (clinical contraindication)
+are distinct, the gap cannot be an artifact of co-keyed predicates. The non-zero both-arm residual
+(the 50) is direct evidence of that separation.
 
 ## Two Layers
 
 | Class | Example | Caught by |
 |---|---|---|
-| Boundary violation | contraindicated med vs renal function; missing approval; dose out of range; PHI in output | **VeritasGate** (this engine) |
-| In-bounds quality drift | legal-but-degraded order; ESI-2 scored as ESI-3; confidence collapse | **DriftMonitor** (Phase 2) |
+| Governance invariant | high-alert drug class requires approval; missing approval; out-of-scope action; PHI in output | **VeritasGate** (this engine) |
+| In-bounds clinical quality drift | legal-but-degraded order; ESI-2 scored as ESI-3; confidence collapse | **DriftMonitor** (Phase 2) |
 
-Neither layer alone is sufficient. This engine demonstrates the boundary-violation half. DriftMonitor
-wiring is Phase 2 work.
+Neither layer alone is sufficient. This engine demonstrates the governance-invariant half;
+DriftMonitor wiring is Phase 2.
 
 Design specs:
 - `docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md`
@@ -90,31 +116,29 @@ Design specs:
 
 ## MVP Scope
 
-What is implemented in this crate:
+Implemented in this crate:
 
-- Medication order pathway (OrderEntry agent through the gate)
-- HarmOracle Tier-1 invariants #1–6 (contraindicated med, missing approval, dose out of range,
+- **Re-prescription pathway** with copy-forward drift (corrupted record → carried-forward order)
+- **HarmOracle Tier-1 invariants #1–6** (contraindicated med, missing approval, dose out of range,
   out-of-scope action, PHI in output, renal contraindication)
-- Two arms (gate-on, gate-off) from identical deterministic seed
-- Two respiratory seasons (56 epi-weeks) over the 50-patient chronic panel
+- **Governance gate on the high-alert drug class** (require-approval routing)
+- **Two arms** (gate-on, gate-off) from an identical deterministic seed
+- **Two respiratory seasons** (56 epi-weeks) over the 50-patient chronic panel
 
-## Phase 2 Deferrals (not implemented)
+## Phase 2 Deferrals (not implemented — not claimed)
 
-The following items are explicitly out of scope for this MVP:
-
-- **Epi-driven acute walk-in encounters** — the loop currently drives only chronic panel returns.
-  Acute walk-ins (volume and mix scaling with the surveillance curve) are designed but deferred.
-- **HarmOracle invariants #7–11** — Tier-1 high-alert drug/allergy interactions, missed critical
-  lab gate, PHI-in-note, cross-patient record bleed, missing consent gate. Specced in
-  `docs/superpowers/specs/2026-06-05-harm-oracle-invariants.md`; not yet wired.
-- **AmbientDoc note-pollution channel** — erroneous SOAP notes as a copy-forward vector is
-  designed (see §4 of the design spec) but not implemented in the current loop.
-- **DriftMonitor (H2) wiring** — in-bounds quality drift tracking is present in `cliniclaw-agents`
-  but is not connected to the sim metrics in this MVP.
-- **Explicit H4 cross-season carryover assertion** — errors introduced in season 1 that produce
-  harm events on season-2 returns are expected to appear in the output data, but no automated
-  assertion isolates and quantifies this class separately.
-- **Live visualization (output ③)** — skinning `/hospital` onto the engine's event stream is a
-  downstream consumer, specced separately.
-- **Adversarial stress harness (output ②)** — perturbation knobs and sharper oracle on this
-  engine are deferred to a separate spec.
+- **Input-sensitive LLM agent in the loop** — the MVP re-prescribes the corrupted record directly;
+  the mock backend is input-insensitive. A real LLM order step is deferred.
+- **Epi-driven acute walk-in encounters** — the loop drives only chronic panel returns; acute
+  walk-ins scaling with the surveillance curve are designed but deferred.
+- **HarmOracle invariants #7–11** — high-alert/allergy interactions, missed critical-lab gate,
+  PHI-in-note, cross-patient record bleed, missing consent gate. Specced, not wired.
+- **AmbientDoc note-pollution channel** — erroneous SOAP notes as a copy-forward vector is designed
+  (§4 of the design spec) but not implemented.
+- **DriftMonitor (H2) wiring** — in-bounds quality drift tracking exists in `cliniclaw-agents` but
+  is not connected to the sim metrics here.
+- **Explicit H4 cross-season carryover assertion** — season-1 errors that harm on season-2 returns
+  appear in the data, but no automated assertion isolates and quantifies this class.
+- **Live visualization (output ③)** — skinning `/hospital` onto the event stream is a downstream
+  consumer, specced separately.
+- **Adversarial stress harness (output ②)** — perturbation knobs and a sharper oracle are deferred.
