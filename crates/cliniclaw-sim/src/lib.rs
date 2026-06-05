@@ -1,7 +1,9 @@
 //! Long-horizon governance drift engine. See
 //! docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md
 
+pub mod arm;
 pub mod copyforward;
+pub mod engine;
 pub mod epi;
 pub mod gate;
 pub mod metrics;
