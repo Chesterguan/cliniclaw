@@ -1,0 +1,850 @@
+[
+  {
+    "patient_id": "chronic-0001",
+    "age": 74,
+    "egfr": 38,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [0, 8, 16, 24, 33, 41, 49, 57]
+  },
+  {
+    "patient_id": "chronic-0002",
+    "age": 68,
+    "egfr": 72,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [2, 10, 19, 27, 36, 44, 52, 60]
+  },
+  {
+    "patient_id": "chronic-0003",
+    "age": 71,
+    "egfr": 25,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [1, 9, 17, 25, 34, 42, 50, 58]
+  },
+  {
+    "patient_id": "chronic-0004",
+    "age": 62,
+    "egfr": 55,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [3, 11, 20, 28, 37, 45, 53, 61]
+  },
+  {
+    "patient_id": "chronic-0005",
+    "age": 79,
+    "egfr": 22,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 10 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [4, 12, 21, 29, 38, 46, 54]
+  },
+  {
+    "patient_id": "chronic-0006",
+    "age": 55,
+    "egfr": 85,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 500 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 10 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [5, 13, 22, 30, 39, 47, 55]
+  },
+  {
+    "patient_id": "chronic-0007",
+    "age": 66,
+    "egfr": 18,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [6, 14, 23, 31, 40, 48, 56]
+  },
+  {
+    "patient_id": "chronic-0008",
+    "age": 58,
+    "egfr": 63,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [7, 15, 24, 32, 41, 49, 57]
+  },
+  {
+    "patient_id": "chronic-0009",
+    "age": 82,
+    "egfr": 27,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [0, 9, 18, 27, 36, 45, 54]
+  },
+  {
+    "patient_id": "chronic-0010",
+    "age": 64,
+    "egfr": 48,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 20 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [1, 10, 19, 28, 37, 46, 55]
+  },
+  {
+    "patient_id": "chronic-0011",
+    "age": 70,
+    "egfr": 35,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 500 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [2, 11, 20, 29, 38, 47, 56]
+  },
+  {
+    "patient_id": "chronic-0012",
+    "age": 57,
+    "egfr": 91,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 10 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [3, 12, 21, 30, 39, 48, 57]
+  },
+  {
+    "patient_id": "chronic-0013",
+    "age": 76,
+    "egfr": 20,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 15 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [4, 13, 22, 31, 40, 49, 58]
+  },
+  {
+    "patient_id": "chronic-0014",
+    "age": 60,
+    "egfr": 78,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [5, 14, 23, 32, 41, 50, 59]
+  },
+  {
+    "patient_id": "chronic-0015",
+    "age": 73,
+    "egfr": 42,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [6, 15, 24, 33, 42, 51, 60]
+  },
+  {
+    "patient_id": "chronic-0016",
+    "age": 85,
+    "egfr": 15,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [7, 16, 25, 34, 43, 52, 61]
+  },
+  {
+    "patient_id": "chronic-0017",
+    "age": 52,
+    "egfr": 88,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [0, 10, 20, 30, 40, 50, 60]
+  },
+  {
+    "patient_id": "chronic-0018",
+    "age": 67,
+    "egfr": 28,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 25 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [1, 11, 21, 31, 41, 51]
+  },
+  {
+    "patient_id": "chronic-0019",
+    "age": 61,
+    "egfr": 59,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [2, 12, 22, 32, 42, 52]
+  },
+  {
+    "patient_id": "chronic-0020",
+    "age": 77,
+    "egfr": 33,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [3, 13, 23, 33, 43, 53]
+  },
+  {
+    "patient_id": "chronic-0021",
+    "age": 59,
+    "egfr": 67,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 10 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [4, 14, 24, 34, 44, 54]
+  },
+  {
+    "patient_id": "chronic-0022",
+    "age": 80,
+    "egfr": 12,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [5, 15, 25, 35, 45, 55]
+  },
+  {
+    "patient_id": "chronic-0023",
+    "age": 63,
+    "egfr": 52,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [6, 16, 26, 36, 46, 56]
+  },
+  {
+    "patient_id": "chronic-0024",
+    "age": 72,
+    "egfr": 44,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [7, 17, 27, 37, 47, 57]
+  },
+  {
+    "patient_id": "chronic-0025",
+    "age": 54,
+    "egfr": 93,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 500 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [0, 11, 22, 33, 44, 55]
+  },
+  {
+    "patient_id": "chronic-0026",
+    "age": 69,
+    "egfr": 26,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [1, 12, 23, 34, 45, 56]
+  },
+  {
+    "patient_id": "chronic-0027",
+    "age": 65,
+    "egfr": 76,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [2, 13, 24, 35, 46, 57]
+  },
+  {
+    "patient_id": "chronic-0028",
+    "age": 78,
+    "egfr": 31,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [3, 14, 25, 36, 47, 58]
+  },
+  {
+    "patient_id": "chronic-0029",
+    "age": 56,
+    "egfr": 82,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [4, 15, 26, 37, 48, 59]
+  },
+  {
+    "patient_id": "chronic-0030",
+    "age": 83,
+    "egfr": 17,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 30 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [5, 16, 27, 38, 49, 60]
+  },
+  {
+    "patient_id": "chronic-0031",
+    "age": 61,
+    "egfr": 71,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [6, 17, 28, 39, 50, 61]
+  },
+  {
+    "patient_id": "chronic-0032",
+    "age": 75,
+    "egfr": 23,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 2.5 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [7, 18, 29, 40, 51]
+  },
+  {
+    "patient_id": "chronic-0033",
+    "age": 50,
+    "egfr": 95,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [0, 12, 24, 36, 48, 60]
+  },
+  {
+    "patient_id": "chronic-0034",
+    "age": 69,
+    "egfr": 46,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 20 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [1, 13, 25, 37, 49, 61]
+  },
+  {
+    "patient_id": "chronic-0035",
+    "age": 58,
+    "egfr": 84,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [2, 14, 26, 38, 50]
+  },
+  {
+    "patient_id": "chronic-0036",
+    "age": 81,
+    "egfr": 21,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 2.5 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [3, 15, 27, 39, 51]
+  },
+  {
+    "patient_id": "chronic-0037",
+    "age": 64,
+    "egfr": 58,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 500 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [4, 16, 28, 40, 52]
+  },
+  {
+    "patient_id": "chronic-0038",
+    "age": 70,
+    "egfr": 39,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [5, 17, 29, 41, 53]
+  },
+  {
+    "patient_id": "chronic-0039",
+    "age": 53,
+    "egfr": 79,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 10 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [6, 18, 30, 42, 54]
+  },
+  {
+    "patient_id": "chronic-0040",
+    "age": 76,
+    "egfr": 24,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 15 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [7, 19, 31, 43, 55]
+  },
+  {
+    "patient_id": "chronic-0041",
+    "age": 66,
+    "egfr": 61,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [0, 13, 26, 39, 52]
+  },
+  {
+    "patient_id": "chronic-0042",
+    "age": 84,
+    "egfr": 14,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 80 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [1, 14, 27, 40, 53]
+  },
+  {
+    "patient_id": "chronic-0043",
+    "age": 57,
+    "egfr": 87,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [2, 15, 28, 41, 54]
+  },
+  {
+    "patient_id": "chronic-0044",
+    "age": 72,
+    "egfr": 29,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 10 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [3, 16, 29, 42, 55]
+  },
+  {
+    "patient_id": "chronic-0045",
+    "age": 60,
+    "egfr": 68,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [4, 17, 30, 43, 56]
+  },
+  {
+    "patient_id": "chronic-0046",
+    "age": 78,
+    "egfr": 19,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 2.5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "7980", "display": "penicillin"}
+    ],
+    "visit_weeks": [5, 18, 31, 44, 57]
+  },
+  {
+    "patient_id": "chronic-0047",
+    "age": 63,
+    "egfr": 74,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"},
+      {"system": "http://snomed.info/sct", "code": "13645005", "display": "COPD"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "metformin 1000 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "896188", "display": "albuterol 90 mcg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 20 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [6, 19, 32, 45, 58]
+  },
+  {
+    "patient_id": "chronic-0048",
+    "age": 74,
+    "egfr": 37,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"},
+      {"system": "http://snomed.info/sct", "code": "44054006", "display": "Diabetes mellitus type 2"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "274783", "display": "insulin glargine 15 units"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1191", "display": "aspirin 81 mg"}
+    ],
+    "allergies": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "10180", "display": "sulfa drugs"}
+    ],
+    "visit_weeks": [7, 20, 33, 46, 59]
+  },
+  {
+    "patient_id": "chronic-0049",
+    "age": 55,
+    "egfr": 90,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 10 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [0, 11, 23, 35, 47, 59]
+  },
+  {
+    "patient_id": "chronic-0050",
+    "age": 67,
+    "egfr": 43,
+    "conditions": [
+      {"system": "http://snomed.info/sct", "code": "42343007", "display": "Congestive heart failure"},
+      {"system": "http://snomed.info/sct", "code": "709044004", "display": "Chronic kidney disease"},
+      {"system": "http://snomed.info/sct", "code": "38341003", "display": "Hypertension"}
+    ],
+    "medications": [
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "310798", "display": "furosemide 40 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "29046", "display": "lisinopril 10 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "11289", "display": "warfarin 5 mg"},
+      {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "83367", "display": "atorvastatin 40 mg"}
+    ],
+    "allergies": [],
+    "visit_weeks": [1, 12, 24, 36, 48, 60]
+  }
+]
