@@ -105,6 +105,7 @@ fn dose_ceiling(rxnorm: &str) -> Option<f64> {
         "6809" => Some(2000.0),   // metformin max 2000 mg/day
         "860975" => Some(2000.0), // metformin 500mg product — same ceiling as 6809
         "29046" => Some(40.0),    // lisinopril max 40 mg/day
+        "11289" => Some(10.0),    // warfarin max ~10 mg/day
         _ => None,
     }
 }
