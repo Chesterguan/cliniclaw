@@ -40,6 +40,16 @@ pub struct OrderEntryOutput {
     pub spec_hash: Option<String>,
 }
 
+/// The production half of order entry: the proposed FHIR action plus its
+/// quality signals, computed WITHOUT any policy gate. Used by cliniclaw-sim
+/// to measure what a denied action would have been (the counterfactual arm).
+#[derive(Debug, Clone)]
+pub struct ProducedOrder {
+    pub medication_request: MedicationRequest,
+    pub cds_cards: Vec<CdsCard>,
+    pub confidence: Confidence,
+}
+
 pub struct OrderEntryAgent {
     llm: Arc<dyn LlmCapability>,
 }
@@ -49,7 +59,61 @@ impl OrderEntryAgent {
         Self { llm }
     }
 
+    /// Parse a natural language order and produce a FHIR MedicationRequest + CDS cards,
+    /// WITHOUT any policy gate. This is the pure production path used by cliniclaw-sim
+    /// to observe what a denied action would have been (the counterfactual arm).
+    pub async fn produce_unguarded(
+        &self,
+        input: &OrderEntryInput,
+    ) -> Result<ProducedOrder, AgentError> {
+        // Step 1: Parse order via LLM
+        let prompt = self.build_prompt(input);
+        let response_text = self.llm.call(&prompt).await?;
+
+        // Step 2: Build MedicationRequest from LLM response
+        let parsed: serde_json::Value = serde_json::from_str(&response_text)
+            .map_err(|e| AgentError::ClaudeApi(format!("failed to parse order response: {e}")))?;
+
+        let medication_request = self.build_medication_request(input, &parsed);
+
+        // Step 3: Run CDS checks
+        let medication_name = parsed
+            .get("medication")
+            .and_then(|v| v.as_str())
+            .unwrap_or(&input.order_text);
+        let mut cds_cards = Vec::new();
+
+        // Drug interaction checks
+        cds_cards.extend(cds::check_drug_interactions(
+            medication_name,
+            &input.active_medications,
+        ));
+
+        // High-risk medication check
+        if let Some(card) = cds::check_high_risk(medication_name) {
+            cds_cards.push(card);
+        }
+
+        // Duplicate order check
+        if let Some(card) = cds::check_duplicate(medication_name, &input.active_medications) {
+            cds_cards.push(card);
+        }
+
+        // Step 4: Verify output (production quality gate — not a policy gate)
+        self.verify_output(&medication_request)?;
+
+        // Step 5: Compute confidence based on parsing quality and CDS severity
+        let confidence = self.compute_confidence(&parsed, &cds_cards);
+
+        Ok(ProducedOrder {
+            medication_request,
+            cds_cards,
+            confidence,
+        })
+    }
+
     /// Parse a natural language order and produce a FHIR MedicationRequest + CDS cards.
+    /// Policy-gated: returns Err on Deny or RequireApproval.
     pub async fn propose_order(
         &self,
         input: &OrderEntryInput,
@@ -85,52 +149,19 @@ impl OrderEntryAgent {
             }
         }
 
-        // Step 2: Parse order via LLM
-        let prompt = self.build_prompt(input);
-        let response_text = self.llm.call(&prompt).await?;
+        // Step 2: Run the gate-independent production path
+        let produced = self.produce_unguarded(input).await?;
 
-        // Step 3: Build MedicationRequest from LLM response
-        let parsed: serde_json::Value = serde_json::from_str(&response_text)
-            .map_err(|e| AgentError::ClaudeApi(format!("failed to parse order response: {e}")))?;
-
-        let medication_request = self.build_medication_request(input, &parsed);
-
-        // Step 4: Run CDS checks
-        let medication_name = parsed
-            .get("medication")
-            .and_then(|v| v.as_str())
-            .unwrap_or(&input.order_text);
-        let mut cds_cards = Vec::new();
-
-        // Drug interaction checks
-        cds_cards.extend(cds::check_drug_interactions(
-            medication_name,
-            &input.active_medications,
-        ));
-
-        // High-risk medication check
-        if let Some(card) = cds::check_high_risk(medication_name) {
-            cds_cards.push(card);
-        }
-
-        // Duplicate order check
-        if let Some(card) = cds::check_duplicate(medication_name, &input.active_medications) {
-            cds_cards.push(card);
-        }
-
-        // Step 5: Verify output
-        self.verify_output(&medication_request)?;
-
-        // Step 6: Audit event
+        // Step 3: Audit event (requires skill_eval context, so stays here)
         let input_descriptor = serde_json::to_vec(&serde_json::json!({
             "encounter_id": input.encounter_id,
             "practitioner_id": input.practitioner_id,
             "order_text": input.order_text,
             "skill_id": skill_eval.skill_id,
             "spec_hash": skill_eval.spec_hash,
-            "cds_card_count": cds_cards.len(),
+            "cds_card_count": produced.cds_cards.len(),
         }))?;
-        let output_descriptor = serde_json::to_vec(&medication_request)?;
+        let output_descriptor = serde_json::to_vec(&produced.medication_request)?;
 
         let audit_event = AuditEvent::new(
             &input.practitioner_id,
@@ -145,17 +176,14 @@ impl OrderEntryAgent {
         tracing::info!(
             audit_event_id = %audit_event.id,
             encounter_id = %input.encounter_id,
-            cds_cards = cds_cards.len(),
+            cds_cards = produced.cds_cards.len(),
             "order entry completed"
         );
 
-        // Compute confidence based on parsing quality and CDS severity
-        let confidence = self.compute_confidence(&parsed, &cds_cards);
-
         Ok(OrderEntryOutput {
-            medication_request,
-            cds_cards,
-            confidence,
+            medication_request: produced.medication_request,
+            cds_cards: produced.cds_cards,
+            confidence: produced.confidence,
             audit_event,
             policy_decision: skill_eval.decision,
             spec_hash: skill_eval.spec_hash,
@@ -392,5 +420,30 @@ mod tests {
         assert_eq!(med_req.intent, "order");
         assert!(med_req.subject.is_some());
         assert!(med_req.medication_codeable_concept.is_some());
+    }
+
+    #[tokio::test]
+    async fn produce_unguarded_emits_action_without_policy() {
+        use std::sync::Arc;
+        use crate::MockClaudeCapability;
+
+        let agent = OrderEntryAgent::new(Arc::new(MockClaudeCapability::new()));
+        let input = OrderEntryInput {
+            encounter_id: "enc-1".into(),
+            encounter_status: "in-progress".into(),
+            patient_id: "pat-1".into(),
+            practitioner_id: "prac-1".into(),
+            order_text: "start metformin 500mg BID".into(),
+            active_medications: vec![],
+            capabilities: vec![], // deliberately empty: would be denied by policy
+            capability_tokens: vec![],
+            practitioner_role: None,
+            patient_active: true,
+            patient_deceased: Some(false),
+            encounter_class: Some("AMB".into()),
+        };
+        // No policy engine involved — production must still yield a MedicationRequest.
+        let produced = agent.produce_unguarded(&input).await.expect("produces action");
+        assert_eq!(produced.medication_request.resource_type, "MedicationRequest");
     }
 }
