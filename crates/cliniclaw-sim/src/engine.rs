@@ -7,7 +7,7 @@ use rand::SeedableRng;
 use cliniclaw_agents::{MockClaudeCapability, OrderEntryAgent, OrderEntryInput};
 use cliniclaw_policy::{ActionContext, PolicyEngine};
 
-use crate::arm::ArmConfig;
+use crate::arm::{ArmConfig, ArmMode};
 use crate::copyforward::CopyForwardChannel;
 use crate::epi::EpiDriver;
 use crate::gate::VeritasGate;
@@ -98,6 +98,15 @@ impl Engine {
         let patients = states.into_values().collect();
         Ok(ArmResult { metrics, patients })
     }
+
+    /// Run both arms at the same seed and return (gate_on, gate_off).
+    pub async fn run_experiment(&self, seed: u64, weeks: usize, max_copyfwd_error_prob: f64)
+        -> Result<(ArmResult, ArmResult), SimError>
+    {
+        let on = self.run_arm(&ArmConfig { mode: ArmMode::GateOn, seed, weeks, max_copyfwd_error_prob }).await?;
+        let off = self.run_arm(&ArmConfig { mode: ArmMode::GateOff, seed, weeks, max_copyfwd_error_prob }).await?;
+        Ok((on, off))
+    }
 }
 
 fn corrupt_med(c: &CodeRef) -> CodeRef {
@@ -129,6 +138,8 @@ fn build_ctx(p: &PanelPatient, input: &OrderEntryInput) -> ActionContext {
     ctx.patient_id = Some(p.patient_id.clone());
     ctx.encounter_id = Some(input.encounter_id.clone());
     ctx.properties.insert("encounter_status".into(), "in-progress".into());
+    ctx.properties.insert("egfr_low".into(),
+        if p.egfr < 30.0 { "true".into() } else { "false".into() });
     ctx
 }
 
@@ -146,7 +157,6 @@ fn to_order_view(m: &cliniclaw_fhir::MedicationRequest) -> ProposedOrderView {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::arm::ArmMode;
 
     fn test_engine() -> Engine {
         let epi = EpiDriver::from_csv(
@@ -167,6 +177,59 @@ decision := "allow" if {
 }
 "#).unwrap();
         Engine { epi, panel, policy }
+    }
+
+    fn renal_safety_engine() -> Engine {
+        let epi = EpiDriver::from_csv(
+            "iso_week,ili_pct\n2023-W40,1.0\n2023-W41,6.0\n", 5, 20).unwrap();
+        // patient eGFR 20 (renal), on metformin; mock will also propose metformin 860975
+        let panel = PatientPanel::from_json(r#"[
+            {"patient_id":"c1","age":74,"egfr":20,"conditions":[],
+             "medications":[{"system":"rx","code":"860975","display":"metformin"}],
+             "allergies":[],"visit_weeks":[0,1]}
+        ]"#).unwrap();
+        let mut policy = PolicyEngine::new();
+        // Deny renally-risky orders; allow otherwise (with capability).
+        policy.load_rego_str("order_entry.rego", r#"
+package cliniclaw.order_entry
+default decision := "deny"
+decision := "allow" if {
+    startswith(input.action, "order_entry.")
+    "order_entry" in input.capabilities
+    input.properties.egfr_low == "false"
+}
+decision := "deny" if {
+    startswith(input.action, "order_entry.")
+    input.properties.egfr_low == "true"
+}
+"#).unwrap();
+        Engine { epi, panel, policy }
+    }
+
+    #[tokio::test]
+    async fn gate_on_lands_no_more_unsafe_than_gate_off() {
+        // H1 invariant, permissive policy: must always hold (<=).
+        let eng = test_engine();
+        let (on, off) = eng.run_experiment(5, 2, 1.0).await.unwrap();
+        assert!(on.metrics.total_landed_unsafe() <= off.metrics.total_landed_unsafe());
+    }
+
+    #[tokio::test]
+    async fn renal_policy_produces_strict_gap() {
+        // With a renal-safety policy, VERITAS blocks the contraindicated metformin
+        // order for the low-eGFR patient; the ungoverned arm lets it land.
+        let eng = renal_safety_engine();
+        let (on, off) = eng.run_experiment(5, 2, 0.0).await.unwrap();
+        // gate-off: the renally-contraindicated order lands both weeks -> >0 landed unsafe
+        assert!(off.metrics.total_landed_unsafe() > 0,
+            "ungoverned arm must let renal violations land");
+        // gate-on: VERITAS denies -> nothing lands, and it caught them at the gate
+        assert_eq!(on.metrics.total_landed_unsafe(), 0,
+            "VERITAS must block the renally-contraindicated order");
+        let caught: usize = on.metrics.weeks.iter().map(|w| w.caught_at_gate).sum();
+        assert!(caught > 0, "gate-on must record gate catches");
+        // strict gap
+        assert!(on.metrics.total_landed_unsafe() < off.metrics.total_landed_unsafe());
     }
 
     #[tokio::test]
