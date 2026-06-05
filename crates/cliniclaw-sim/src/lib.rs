@@ -1,6 +1,7 @@
 //! Long-horizon governance drift engine. See
 //! docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md
 
+pub mod copyforward;
 pub mod epi;
 pub mod panel;
 

@@ -5,7 +5,7 @@ use crate::SimError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PanelClass { Chronic, Acute }
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
 pub struct CodeRef {
     pub system: String,
     pub code: String,
