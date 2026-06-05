@@ -4,6 +4,7 @@
 pub mod copyforward;
 pub mod epi;
 pub mod gate;
+pub mod metrics;
 pub mod oracle;
 pub mod panel;
 pub mod patient_state;
