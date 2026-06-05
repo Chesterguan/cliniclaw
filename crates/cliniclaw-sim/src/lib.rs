@@ -5,6 +5,7 @@ pub mod copyforward;
 pub mod epi;
 pub mod oracle;
 pub mod panel;
+pub mod patient_state;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SimError {
