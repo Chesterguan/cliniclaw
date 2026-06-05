@@ -1,6 +1,6 @@
 # VERITAS Long-Horizon Governance Drift Experiment — Design
 
-> Status: Draft for review · Date: 2026-06-05 · Owner: chesterguan
+> Status: MVP implemented (2026-06-05) — see crates/cliniclaw-sim · Date: 2026-06-05 · Owner: chesterguan
 > Scope: Sub-project **A** (the engine). Outputs ② (stress harness) and ③ (live viz) are downstream consumers, specced separately.
 
 ## 1. Context & Motivation

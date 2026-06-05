@@ -57,6 +57,7 @@ Think: what a modern HIS looks like when AI is a first-class citizen, not an aft
 | `cliniclaw-persist` | SQLite/Postgres audit store with SHA-256 hash chain + AuditOutcome for failure paths |
 | `cliniclaw-kernel` | Workspace/turn store, AgentEvent system, EventEmitter |
 | `cliniclaw-tui` | Terminal UI with hospital view, live metrics, event detail |
+| `cliniclaw-sim` | Long-horizon governance drift engine — replays real epi seasons over a longitudinal panel, gates every order through VERITAS, emits gate-on vs gate-off counterfactual |
 
 ## Key Stack
 
