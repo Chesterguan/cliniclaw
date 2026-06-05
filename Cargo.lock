@@ -414,6 +414,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "cliniclaw-sim"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "cliniclaw-agents",
+ "cliniclaw-fhir",
+ "cliniclaw-kernel",
+ "cliniclaw-persist",
+ "cliniclaw-policy",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "cliniclaw-tui"
 version = "0.1.0"
 dependencies = [
