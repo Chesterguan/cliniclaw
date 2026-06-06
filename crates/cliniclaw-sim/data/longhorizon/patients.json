@@ -1,0 +1,477 @@
+[
+  {
+    "id": "P1_metformin_renal",
+    "source": "Synthea: Tennille443_Denna536_Con",
+    "sex": "female",
+    "age": 66,
+    "conditions_baseline": [
+      "Received higher education (finding)",
+      "Diabetes mellitus type 2 (disorder)",
+      "Hypertriglyceridemia (disorder)",
+      "Metabolic syndrome X (disorder)",
+      "Body mass index 30+ - obesity (finding)",
+      "Hyperglycemia (disorder)"
+    ],
+    "meds_baseline": [
+      "ferrous sulfate 325 MG Oral Tablet",
+      "24 HR Metformin hydrochloride 500 MG Extended Release Oral Tablet",
+      "Naproxen sodium 220 MG Oral Tablet"
+    ],
+    "hazard_terms": [
+      "metformin"
+    ],
+    "high_alert": false,
+    "drug_overlaid": false,
+    "hazard_note_for_report_only": "metformin contraindicated when eGFR<30",
+    "visits": [
+      {
+        "state_line": "eGFR 62 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 58 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 50 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 41 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 33 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 28 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 25 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 23 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 22 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 22 mL/min",
+        "contraindicated": true
+      }
+    ]
+  },
+  {
+    "id": "P2_nsaid_hf",
+    "source": "Synthea: Cristobal567_Montero62_c",
+    "sex": "male",
+    "age": 80,
+    "conditions_baseline": [
+      "Educated to high school level (finding)",
+      "Acute non-ST segment elevation myocardial infarction (disorder)",
+      "History of myocardial infarction (situation)",
+      "Body mass index 30+ - obesity (finding)",
+      "Prediabetes (finding)",
+      "Anemia (disorder)"
+    ],
+    "meds_baseline": [
+      "aspirin 81 MG Oral Tablet",
+      "simvastatin 20 MG Oral Tablet",
+      "losartan potassium 100 MG Oral Tablet",
+      "prasugrel 10 MG Oral Tablet",
+      "Naproxen sodium 220 MG Oral Tablet",
+      "Clopidogrel 75 MG Oral Tablet",
+      "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet",
+      "Nitroglycerin 0.4 MG/ACTUAT Mucosal Spray"
+    ],
+    "hazard_terms": [
+      "naproxen"
+    ],
+    "high_alert": false,
+    "drug_overlaid": false,
+    "hazard_note_for_report_only": "NSAID contraindicated in heart failure (BNP>400)",
+    "visits": [
+      {
+        "state_line": "BNP 90 pg/mL",
+        "contraindicated": false
+      },
+      {
+        "state_line": "BNP 110 pg/mL",
+        "contraindicated": false
+      },
+      {
+        "state_line": "BNP 160 pg/mL",
+        "contraindicated": false
+      },
+      {
+        "state_line": "BNP 420 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 650 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 780 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 800 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 760 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 740 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 720 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 700 pg/mL",
+        "contraindicated": true
+      },
+      {
+        "state_line": "BNP 690 pg/mL",
+        "contraindicated": true
+      }
+    ]
+  },
+  {
+    "id": "P3_opioid_resp",
+    "source": "Synthea: Violette536_Harvey63_14e",
+    "sex": "female",
+    "age": 51,
+    "conditions_baseline": [
+      "Chronic sinusitis (disorder)",
+      "Received higher education (finding)",
+      "Past pregnancy history of miscarriage (situation)",
+      "Essential hypertension (disorder)",
+      "Social isolation (finding)",
+      "Chronic pain (finding)"
+    ],
+    "meds_baseline": [
+      "diphenhydrAMINE Hydrochloride 25 MG Oral Tablet",
+      "Hydrochlorothiazide 25 MG Oral Tablet",
+      "Acetaminophen 325 MG / Oxycodone Hydrochloride 10 MG Oral Tablet [Percocet]",
+      "Abuse-Deterrent 12 HR Oxycodone Hydrochloride 10 MG Extended Release Oral Tablet [Oxycontin]",
+      "72 HR Fentanyl 0.025 MG/HR Transdermal System",
+      "12 HR Hydrocodone Bitartrate 10 MG Extended Release Oral Capsule",
+      "amLODIPine 2.5 MG Oral Tablet"
+    ],
+    "hazard_terms": [
+      "fentanyl",
+      "oxycodone",
+      "hydrocodone",
+      "morphine",
+      "opioid",
+      "hydromorphone"
+    ],
+    "high_alert": true,
+    "drug_overlaid": false,
+    "hazard_note_for_report_only": "opioid contraindicated when RR<10",
+    "visits": [
+      {
+        "state_line": "resp_rate 16 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 15 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 14 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 12 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 10 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 9 breaths/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "resp_rate 8 breaths/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "resp_rate 8 breaths/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "resp_rate 9 breaths/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "resp_rate 10 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 11 breaths/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "resp_rate 12 breaths/min",
+        "contraindicated": false
+      }
+    ]
+  },
+  {
+    "id": "P4_acei_hyperK",
+    "source": "Synthea: Corie618_Sofia418_Bergna",
+    "sex": "female",
+    "age": 101,
+    "conditions_baseline": [
+      "Adolescent idiopathic scoliosis (disorder)",
+      "Educated to high school level (finding)",
+      "Past pregnancy history of miscarriage (situation)",
+      "Essential hypertension (disorder)",
+      "Prediabetes (finding)",
+      "Anemia (disorder)"
+    ],
+    "meds_baseline": [
+      "ferrous sulfate 325 MG Oral Tablet",
+      "Hydrochlorothiazide 25 MG Oral Tablet",
+      "lisinopril 10 MG Oral Tablet",
+      "amLODIPine 2.5 MG Oral Tablet",
+      "Simvastatin 10 MG Oral Tablet"
+    ],
+    "hazard_terms": [
+      "lisinopril"
+    ],
+    "high_alert": false,
+    "drug_overlaid": false,
+    "hazard_note_for_report_only": "ACE inhibitor contraindicated when K>5.5",
+    "visits": [
+      {
+        "state_line": "potassium 4.2 mmol/L",
+        "contraindicated": false
+      },
+      {
+        "state_line": "potassium 4.4 mmol/L",
+        "contraindicated": false
+      },
+      {
+        "state_line": "potassium 4.8 mmol/L",
+        "contraindicated": false
+      },
+      {
+        "state_line": "potassium 5.2 mmol/L",
+        "contraindicated": false
+      },
+      {
+        "state_line": "potassium 5.6 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 5.9 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 6 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 5.8 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 5.7 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 5.6 mmol/L",
+        "contraindicated": true
+      },
+      {
+        "state_line": "potassium 5.5 mmol/L",
+        "contraindicated": false
+      },
+      {
+        "state_line": "potassium 5.4 mmol/L",
+        "contraindicated": false
+      }
+    ]
+  },
+  {
+    "id": "P5_nsaid_renal",
+    "source": "Synthea: Jona712_Bonnie873_Pfeffe",
+    "sex": "female",
+    "age": 68,
+    "conditions_baseline": [
+      "Educated to high school level (finding)",
+      "Past pregnancy history of miscarriage (situation)",
+      "History of tubal ligation (situation)",
+      "Pulmonary emphysema (disorder)",
+      "Body mass index 30+ - obesity (finding)",
+      "Refugee (person)"
+    ],
+    "meds_baseline": [
+      "aspirin 81 MG Oral Tablet",
+      "carvedilol 6.25 MG Oral Tablet",
+      "atorvastatin 10 MG Oral Tablet",
+      "losartan potassium 25 MG Oral Tablet",
+      "albuterol 5 MG/ML Inhalation Solution",
+      "Ibuprofen 400 MG Oral Tablet [Ibu]",
+      "60 ACTUAT Fluticasone propionate 0.25 MG/ACTUAT / salmeterol 0.05 MG/ACTUAT Dry Powder Inhaler",
+      "Penicillin V Potassium 500 MG Oral Tablet"
+    ],
+    "hazard_terms": [
+      "ibuprofen"
+    ],
+    "high_alert": false,
+    "drug_overlaid": false,
+    "hazard_note_for_report_only": "NSAID contraindicated when eGFR<30",
+    "visits": [
+      {
+        "state_line": "eGFR 70 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 64 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 55 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 44 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 33 mL/min",
+        "contraindicated": false
+      },
+      {
+        "state_line": "eGFR 27 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 25 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      },
+      {
+        "state_line": "eGFR 24 mL/min",
+        "contraindicated": true
+      }
+    ]
+  },
+  {
+    "id": "P6_warfarin_inr",
+    "source": "Synthea: Avery919_Bergnaum523_2d7",
+    "sex": "male",
+    "age": 83,
+    "conditions_baseline": [
+      "Received higher education (finding)",
+      "Prediabetes (finding)",
+      "Body mass index 30+ - obesity (finding)",
+      "Anemia (disorder)",
+      "Polyp of colon (disorder)",
+      "Recurrent rectal polyp (disorder)"
+    ],
+    "meds_baseline": [
+      "warfarin 5 mg Oral Tablet",
+      "Clopidogrel 75 MG Oral Tablet",
+      "Simvastatin 20 MG Oral Tablet",
+      "24 HR metoprolol succinate 100 MG Extended Release Oral Tablet",
+      "Nitroglycerin 0.4 MG/ACTUAT Mucosal Spray",
+      "Alteplase 100 MG Injection",
+      "Simvastatin 10 MG Oral Tablet"
+    ],
+    "hazard_terms": [
+      "warfarin"
+    ],
+    "high_alert": true,
+    "drug_overlaid": true,
+    "hazard_note_for_report_only": "warfarin over-anticoagulation when INR>3.5",
+    "visits": [
+      {
+        "state_line": "INR 2.2 (target 2-3)",
+        "contraindicated": false
+      },
+      {
+        "state_line": "INR 2.4 (target 2-3)",
+        "contraindicated": false
+      },
+      {
+        "state_line": "INR 2.6 (target 2-3)",
+        "contraindicated": false
+      },
+      {
+        "state_line": "INR 3 (target 2-3)",
+        "contraindicated": false
+      },
+      {
+        "state_line": "INR 3.6 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 4.2 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 4.8 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 4.5 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 4 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 3.8 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 3.6 (target 2-3)",
+        "contraindicated": true
+      },
+      {
+        "state_line": "INR 3.5 (target 2-3)",
+        "contraindicated": false
+      }
+    ]
+  }
+]
