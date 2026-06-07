@@ -51,6 +51,8 @@ demo.mp4
 tests/fixtures/real/
 linkedin-posts.md
 *.png
+# …but report chart assets are documentation and ARE tracked:
+!docs/reports/assets/*.png
 
 # Generated proposal exports — PROPOSAL.md is the source of truth.
 # Built .docx/.html are published as GitHub Release assets, never committed
