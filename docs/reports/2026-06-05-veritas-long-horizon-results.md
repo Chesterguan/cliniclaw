@@ -1,5 +1,12 @@
 # Does a governance layer keep AI safe over the long haul?
 
+> ⚠️ **SUPERSEDED — pipeline validation only.** This run used a *synthetic* mock model with *injected* drift,
+> and the drift was (unintentionally) aimed at the drug class the gate governs, so the 76.5% headline flatters
+> the gate and is **not** a scientific result. It is retained only to document the measurement harness. The
+> real, pre-registered result with **real models** and a **hidden** oracle is in
+> [`2026-06-07-real-llm-longhorizon-results.md`](2026-06-07-real-llm-longhorizon-results.md) — where the gate's
+> honest effect is much smaller and, for one model, near zero.
+
 ### A ClinicClaw experiment, inspired by Emergence World
 
 **The short version:** We ran a simulated hospital for two flu seasons. An AI re-prescribed
@@ -47,9 +54,7 @@ flowchart LR
     P -.-> O
 ```
 
-We run this **twice on the identical random seed** — once with the guardrail **on** (governed), once **off**
-(ungoverned, the control). Then we count one thing: **how many unsafe orders actually reached a patient.** The
-difference between the two runs is the value the guardrail added.
+We run this **twice on the identical random seed** — once with the guardrail **on** (governed), once **off**(ungoverned, the control). Then we count one thing: **how many unsafe orders actually reached a patient.** The difference between the two runs is the value the guardrail added.
 
 **Why this isn't rigged (the part we were careful about).** It would be easy to cheat: have the guardrail
 block exactly what the judge flags, then claim a perfect score. We deliberately did the opposite —
@@ -90,51 +95,31 @@ and the guardrail absorbed it.**
 
 ### Finding 3 — The guardrail was *not* enough on its own (the honest part)
 
-Notice VERITAS did **not** get to zero — **50 unsafe orders still reached patients.** These weren't failures of
-the guardrail; they're a **different kind of problem**. They are clinical contraindications hiding in the
-patients' *own* medication lists (a kidney-impaired patient's metformin, an NSAID in heart failure). Those
-drugs aren't "high-alert" by class, so a *governance* guardrail has no reason to stop them — that's a job for a
-**clinical** safety layer (drug-by-patient checking), which we have not wired up yet.
+Notice VERITAS did **not** get to zero — **50 unsafe orders still reached patients.** These weren't failures of the guardrail; they're a **different kind of problem**. They are clinical contraindications hiding in the patients' *own* medication lists (a kidney-impaired patient's metformin, an NSAID in heart failure). Those drugs aren't "high-alert" by class, so a *governance* guardrail has no reason to stop them — that's a job for a **clinical** safety layer (drug-by-patient checking), which we have not wired up yet.
 
-This is the real lesson, and it's more useful than a perfect score would have been: **a policy guardrail is
-necessary but not sufficient.** It reliably catches the governance-relevant danger that drift creates, but you
-still need a second, clinical layer for the rest. A clean "213 → 0" would have falsely implied a policy gate
-can replace clinical judgment. It can't.
+This is the real lesson, and it's more useful than a perfect score would have been: **a policy guardrail is necessary but not sufficient.** It reliably catches the governance-relevant danger that drift creates, but you still need a second, clinical layer for the rest. A clean "213 → 0" would have falsely implied a policy gate can replace clinical judgment. It can't.
 
 ### What we did **not** show
 
-We did **not** demonstrate *cross-season carryover* (an error made in season 1 still biting in season 2). In
-this version the AI re-reads each patient's original chart every visit, so a transcription error is
-**temporary** — it doesn't get written back into the record for later visits to inherit. Season 2 looks
-slightly worse only because its flu peaks were higher, not because errors accumulated. Making the record
-**persist** is the next step.
+We did **not** demonstrate *cross-season carryover* (an error made in season 1 still biting in season 2). 
+In this version the AI re-reads each patient's original chart every visit, so a transcription error is **temporary** — it doesn't get written back into the record for later visits to inherit. Season 2 looks slightly worse only because its flu peaks were higher, not because errors accumulated. Making the record **persist** is the next step.
 
 ---
 
 ## 4. Bottom line  (结论)
 
-Over a long, drift-driven workload, an external, deny-by-default governance layer stopped **76.5%** of unsafe
-medication orders from reaching patients — and we can show the result was **driven by the drift** (it rises and
-falls with the real flu curve), not by circular wiring. The **23.5% that still got through** were a different
-class of clinical error that a governance gate isn't designed to catch, which is itself the evidence for adding
-a second safety layer.
+Over a long, drift-driven workload, an external, deny-by-default governance layer stopped **76.5%** of unsafe medication orders from reaching patients — and we can show the result was **driven by the drift** (it rises and falls with the real flu curve), not by circular wiring. The **23.5% that still got through** were a different class of clinical error that a governance gate isn't designed to catch, which is itself the evidence for adding a second safety layer.
 
-The takeaway lines up with what Emergence World argued for general agents, now shown in a clinical setting:
-**you cannot assume safety from the agent — it has to be enforced from the outside, verifiably — and one layer
-is not enough.**
+The takeaway lines up with what Emergence World argued for general agents, now shown in a clinical setting: **you cannot assume safety from the agent — it has to be enforced from the outside, verifiably — and one layer is not enough.**
 
 ---
 
 ## Caveats — please read before quoting these numbers
 
 - **One random seed.** These are seed-2026 figures. The *direction* (governed < ungoverned) and the
-  no-drift-no-gap property hold for every seed by construction, but the exact 163 should be reported as a
-  range over many seeds before any external claim.
-- **Simulated, not real.** Mock AI backend (the order is modeled as a direct re-prescription, not a real LLM
-  call yet); 50 synthetic Synthea-style patients; reference tables (drug interactions, dose limits, copy-paste
+  no-drift-no-gap property hold for every seed by construction, but the exact 163 should be reported as a range over many seeds before any external claim.
+- **Simulated, not real.** Mock AI backend (the order is modeled as a direct re-prescription, not a real LLM call yet); 50 synthetic Synthea-style patients; reference tables (drug interactions, dose limits, copy-paste
   rate) are representative placeholders pending calibration against the cited literature (ISMP, Beers, CDC).
-- **Scope.** Medication-ordering pathway only; the clinical second layer, persistent records (carryover), a
-  real LLM in the loop, and a live visualization are all next-phase work.
+- **Scope.** Medication-ordering pathway only; the clinical second layer, persistent records (carryover), a real LLM in the loop, and a live visualization are all next-phase work.
 
-**Reproduce:** `cargo run -p cliniclaw-sim --bin run_experiment` → writes `target/sim/gate_on.json` and
-`gate_off.json`. Design and methods: `docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md`.
+**Reproduce:** `cargo run -p cliniclaw-sim --bin run_experiment` → writes `target/sim/gate_on.json` and `gate_off.json`. Design and methods: `docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md`.
