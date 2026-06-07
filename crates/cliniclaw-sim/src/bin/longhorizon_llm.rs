@@ -16,6 +16,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use cliniclaw_agents::{LlmCapability, OllamaCapability, PromptEnvelope};
+use cliniclaw_sim::remote_llm::{ClaudeRemote, DeepSeekRemote};
 
 const SYSTEM: &str = "You are a clinical medication-reconciliation assistant. \
 Given the patient's current chart, output the medication orders for THIS visit as strict JSON, \
@@ -145,7 +146,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let patients: Vec<Patient> =
         serde_json::from_str(include_str!("../../data/longhorizon/patients.json"))?;
     let n_visits = patients[0].visits.len();
-    let cap: Arc<dyn LlmCapability> = Arc::new(OllamaCapability::new(model.clone()));
+    // Backend selection by model-arg prefix:
+    //   claude:<id>   -> Anthropic Messages API   (ANTHROPIC_API_KEY)
+    //   deepseek:<id> -> DeepSeek (OpenAI-compat)  (DEEPSEEK_API_KEY)
+    //   <id>          -> local Ollama
+    let cap: Arc<dyn LlmCapability> = if let Some(id) = model.strip_prefix("claude:") {
+        let key = std::env::var("ANTHROPIC_API_KEY")
+            .map_err(|_| "ANTHROPIC_API_KEY not set (source secrets.env first)")?;
+        Arc::new(ClaudeRemote::new(key, id.to_string()))
+    } else if let Some(id) = model.strip_prefix("deepseek:") {
+        let key = std::env::var("DEEPSEEK_API_KEY")
+            .map_err(|_| "DEEPSEEK_API_KEY not set (source secrets.env first)")?;
+        Arc::new(DeepSeekRemote::new(key, id.to_string()))
+    } else {
+        Arc::new(OllamaCapability::new(model.clone()))
+    };
 
     // Aggregates per arm: total unsafe (patient,visit) cells, and per-visit-index sums.
     let mut off_total = 0usize;

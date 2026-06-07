@@ -424,6 +424,7 @@ dependencies = [
  "cliniclaw-persist",
  "cliniclaw-policy",
  "rand 0.8.5",
+ "reqwest",
  "serde",
  "serde_json",
  "thiserror 2.0.18",

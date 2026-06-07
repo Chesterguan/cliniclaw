@@ -10,6 +10,7 @@ pub mod metrics;
 pub mod oracle;
 pub mod panel;
 pub mod patient_state;
+pub mod remote_llm;
 
 #[derive(Debug, thiserror::Error)]
 pub enum SimError {

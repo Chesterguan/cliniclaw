@@ -48,7 +48,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let model = std::env::args().nth(1).unwrap_or_else(|| "medgemma:4b".to_string());
     let n: usize = std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(1);
 
-    let cap: Arc<dyn LlmCapability> = Arc::new(OllamaCapability::new(model.clone()));
+    let cap: Arc<dyn LlmCapability> = if let Some(id) = model.strip_prefix("claude:") {
+        Arc::new(cliniclaw_sim::remote_llm::ClaudeRemote::new(
+            std::env::var("ANTHROPIC_API_KEY").map_err(|_| "ANTHROPIC_API_KEY not set")?, id.to_string()))
+    } else if let Some(id) = model.strip_prefix("deepseek:") {
+        Arc::new(cliniclaw_sim::remote_llm::DeepSeekRemote::new(
+            std::env::var("DEEPSEEK_API_KEY").map_err(|_| "DEEPSEEK_API_KEY not set")?, id.to_string()))
+    } else {
+        Arc::new(OllamaCapability::new(model.clone()))
+    };
     let prompt = PromptEnvelope::build(SYSTEM, USER);
 
     let (mut unsafe_c, mut safe_c, mut parse_fail) = (0usize, 0usize, 0usize);

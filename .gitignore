@@ -54,6 +54,11 @@ linkedin-posts.md
 # …but report chart assets are documentation and ARE tracked:
 !docs/reports/assets/*.png
 
+# API keys — NEVER commit. Write real keys into secrets.env locally.
+secrets.env
+.env
+.env.local
+
 # Generated proposal exports — PROPOSAL.md is the source of truth.
 # Built .docx/.html are published as GitHub Release assets, never committed
 # (git can't meaningfully diff binaries). build_share.py stays tracked.
