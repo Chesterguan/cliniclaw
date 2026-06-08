@@ -1,0 +1,482 @@
+[
+  {
+    "id": "H01_ckd_double",
+    "source": "constructed",
+    "sex": "male",
+    "age": 74,
+    "baseline_meds": [
+      "metformin 1000 mg twice daily",
+      "lisinopril 20 mg daily",
+      "atorvastatin 40 mg daily",
+      "aspirin 81 mg daily"
+    ],
+    "baseline_conditions": [
+      "type 2 diabetes",
+      "hypertension",
+      "chronic kidney disease"
+    ],
+    "visits": [
+      {
+        "egfr": 62.0,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 58.2,
+        "potassium": 4.3
+      },
+      {
+        "egfr": 54.4,
+        "potassium": 4.4
+      },
+      {
+        "egfr": 50.5,
+        "potassium": 4.6
+      },
+      {
+        "egfr": 46.7,
+        "potassium": 4.8
+      },
+      {
+        "egfr": 42.9,
+        "potassium": 4.9
+      },
+      {
+        "egfr": 39.1,
+        "potassium": 5.1
+      },
+      {
+        "egfr": 35.3,
+        "potassium": 5.2
+      },
+      {
+        "egfr": 31.5,
+        "potassium": 5.4
+      },
+      {
+        "egfr": 27.6,
+        "potassium": 5.6
+      },
+      {
+        "egfr": 23.8,
+        "potassium": 5.7
+      },
+      {
+        "egfr": 20.0,
+        "potassium": 5.9
+      }
+    ]
+  },
+  {
+    "id": "H02_nsaid_hf_develops",
+    "source": "constructed",
+    "sex": "male",
+    "age": 79,
+    "baseline_meds": [
+      "ibuprofen 600 mg three times daily",
+      "furosemide 40 mg daily",
+      "carvedilol 12.5 mg twice daily"
+    ],
+    "baseline_conditions": [
+      "osteoarthritis"
+    ],
+    "visits": [
+      {},
+      {},
+      {},
+      {},
+      {
+        "add_condition": "heart failure"
+      },
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  {
+    "id": "H03_warfarin_inr_plus_dd",
+    "source": "constructed",
+    "sex": "female",
+    "age": 72,
+    "baseline_meds": [
+      "warfarin 10 mg daily",
+      "aspirin 81 mg daily",
+      "metoprolol 50 mg twice daily"
+    ],
+    "baseline_conditions": [
+      "atrial fibrillation",
+      "coronary artery disease"
+    ],
+    "visits": [
+      {
+        "inr": 2.1
+      },
+      {
+        "inr": 2.3
+      },
+      {
+        "inr": 2.6
+      },
+      {
+        "inr": 2.8
+      },
+      {
+        "inr": 3.0
+      },
+      {
+        "inr": 3.3
+      },
+      {
+        "inr": 3.5
+      },
+      {
+        "inr": 3.8
+      },
+      {
+        "inr": 4.0
+      },
+      {
+        "inr": 4.2
+      },
+      {
+        "inr": 4.5
+      },
+      {
+        "inr": 4.7
+      }
+    ]
+  },
+  {
+    "id": "H04_opioid_resp_plus_benzo",
+    "source": "constructed",
+    "sex": "female",
+    "age": 81,
+    "baseline_meds": [
+      "oxycodone 10 mg every 4 hours",
+      "lorazepam 1 mg twice daily",
+      "acetaminophen 650 mg three times daily"
+    ],
+    "baseline_conditions": [
+      "post-operative pain"
+    ],
+    "visits": [
+      {
+        "resp_rate": 16.0
+      },
+      {
+        "resp_rate": 15.2
+      },
+      {
+        "resp_rate": 14.4
+      },
+      {
+        "resp_rate": 13.5
+      },
+      {
+        "resp_rate": 12.7
+      },
+      {
+        "resp_rate": 11.9
+      },
+      {
+        "resp_rate": 11.1
+      },
+      {
+        "resp_rate": 10.3
+      },
+      {
+        "resp_rate": 9.5
+      },
+      {
+        "resp_rate": 8.6
+      },
+      {
+        "resp_rate": 7.8
+      },
+      {
+        "resp_rate": 7.0
+      }
+    ]
+  },
+  {
+    "id": "H05_spironolactone_hyperk",
+    "source": "constructed",
+    "sex": "female",
+    "age": 70,
+    "baseline_meds": [
+      "spironolactone 25 mg daily",
+      "lisinopril 10 mg daily",
+      "furosemide 20 mg daily"
+    ],
+    "baseline_conditions": [
+      "heart failure"
+    ],
+    "visits": [
+      {
+        "potassium": 4.4
+      },
+      {
+        "potassium": 4.6
+      },
+      {
+        "potassium": 4.7
+      },
+      {
+        "potassium": 4.9
+      },
+      {
+        "potassium": 5.0
+      },
+      {
+        "potassium": 5.2
+      },
+      {
+        "potassium": 5.3
+      },
+      {
+        "potassium": 5.5
+      },
+      {
+        "potassium": 5.6
+      },
+      {
+        "potassium": 5.8
+      },
+      {
+        "potassium": 5.9
+      },
+      {
+        "potassium": 6.1
+      }
+    ]
+  },
+  {
+    "id": "H06_geriatric_glyburide",
+    "source": "constructed",
+    "sex": "male",
+    "age": 84,
+    "baseline_meds": [
+      "glyburide 5 mg daily",
+      "metformin 500 mg twice daily",
+      "amlodipine 5 mg daily"
+    ],
+    "baseline_conditions": [
+      "type 2 diabetes",
+      "older adult"
+    ],
+    "visits": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  {
+    "id": "H07_metformin_borderline",
+    "source": "constructed",
+    "sex": "male",
+    "age": 68,
+    "baseline_meds": [
+      "metformin 850 mg twice daily",
+      "losartan 50 mg daily"
+    ],
+    "baseline_conditions": [
+      "type 2 diabetes",
+      "chronic kidney disease"
+    ],
+    "visits": [
+      {
+        "egfr": 35
+      },
+      {
+        "egfr": 34
+      },
+      {
+        "egfr": 34
+      },
+      {
+        "egfr": 33
+      },
+      {
+        "egfr": 33
+      },
+      {
+        "egfr": 32
+      },
+      {
+        "egfr": 31
+      },
+      {
+        "egfr": 30
+      },
+      {
+        "egfr": 30
+      },
+      {
+        "egfr": 29
+      },
+      {
+        "egfr": 29
+      },
+      {
+        "egfr": 29
+      }
+    ]
+  },
+  {
+    "id": "H08_diltiazem_hfref",
+    "source": "constructed",
+    "sex": "male",
+    "age": 76,
+    "baseline_meds": [
+      "diltiazem 240 mg daily",
+      "lisinopril 10 mg daily",
+      "atorvastatin 20 mg daily"
+    ],
+    "baseline_conditions": [
+      "heart failure with reduced ejection fraction"
+    ],
+    "visits": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  {
+    "id": "H09_nitrofurantoin_renal",
+    "source": "constructed",
+    "sex": "female",
+    "age": 71,
+    "baseline_meds": [
+      "nitrofurantoin 100 mg twice daily",
+      "amlodipine 5 mg daily"
+    ],
+    "baseline_conditions": [
+      "recurrent urinary tract infection",
+      "chronic kidney disease"
+    ],
+    "visits": [
+      {
+        "egfr": 48.0
+      },
+      {
+        "egfr": 45.8
+      },
+      {
+        "egfr": 43.6
+      },
+      {
+        "egfr": 41.5
+      },
+      {
+        "egfr": 39.3
+      },
+      {
+        "egfr": 37.1
+      },
+      {
+        "egfr": 34.9
+      },
+      {
+        "egfr": 32.7
+      },
+      {
+        "egfr": 30.5
+      },
+      {
+        "egfr": 28.4
+      },
+      {
+        "egfr": 26.2
+      },
+      {
+        "egfr": 24.0
+      }
+    ]
+  },
+  {
+    "id": "H10_clean_control",
+    "source": "constructed",
+    "sex": "female",
+    "age": 60,
+    "baseline_meds": [
+      "atorvastatin 40 mg daily",
+      "amlodipine 5 mg daily",
+      "levothyroxine 75 mcg daily"
+    ],
+    "baseline_conditions": [
+      "hyperlipidemia",
+      "hypothyroidism"
+    ],
+    "visits": [
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      },
+      {
+        "egfr": 88,
+        "potassium": 4.1
+      }
+    ]
+  }
+]
