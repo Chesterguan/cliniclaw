@@ -2,6 +2,7 @@
 //! docs/superpowers/specs/2026-06-05-veritas-long-horizon-drift-experiment-design.md
 
 pub mod arm;
+pub mod clinical_rules;
 pub mod copyforward;
 pub mod engine;
 pub mod epi;
