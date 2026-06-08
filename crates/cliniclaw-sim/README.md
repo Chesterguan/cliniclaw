@@ -125,6 +125,54 @@ Implemented in this crate:
 - **Two arms** (gate-on, gate-off) from an identical deterministic seed
 - **Two respiratory seasons** (56 epi-weeks) over the 50-patient chronic panel
 
+## The Testbed — Running More Complex Cases
+
+The point of this crate is the **reusable experiment harness**, not any single result. The frontier-model
+result (Claude 0% / DeepSeek 2% on the textbook hazards) mainly shows the *current cases aren't hard enough to
+separate strong models* — harder cases are the future work, and the harness is built to drop them in without
+re-deriving anything.
+
+**Two run modes:**
+
+| Binary | Order source | Use |
+|---|---|---|
+| `run_experiment` | synthetic re-prescription (deterministic, mock) | fast, reproducible pipeline checks |
+| `longhorizon_llm <backend> <seeds>` | a **real LLM** reconciling a persistent, evolving chart over N visits | the real experiment |
+| `validate_llm <backend> [N]` | single-scenario probe | quick per-model connectivity/behavior check |
+
+**Backends** (model-arg prefix): `<model>` = local Ollama · `claude:<id>` · `deepseek:<id>`. Frontier keys live
+in gitignored `secrets.env`; load them with `set -a && source secrets.env && set +a` before the run. Add another
+OpenAI-compatible provider in `remote_llm.rs` (~30 lines).
+
+**Where harder cases plug in — three files, no engine changes:**
+
+1. **Patients & hazards → `data/longhorizon/patients.json`.** Each patient has `conditions_baseline`,
+   `meds_baseline` (real drugs + distractors), `hazard_terms`, `high_alert`, and a per-visit array of
+   `{state_line, contraindicated}`. The `contraindicated` flag is the **hidden ground truth** (the model never
+   sees it). To make cases harder, author: ambiguous/subtle `state_line`s (a borderline lab instead of a blatant
+   one), **multiple hazards per patient**, longer horizons (more visits), interacting drugs, conditions that
+   appear mid-trajectory, or hazards on **non-high-alert** drugs (which the current gate won't catch — that's the
+   point). More patients/visits = more cells; nothing else changes.
+2. **Harm definition → the `contraindicated` flags (longhorizon) or `oracle.rs` tables (synthetic).** For the
+   real-LLM run, encode whatever clinical logic you want when you author the JSON flags. For the synthetic
+   engine, extend the `MAJOR_INTERACTIONS` / `DRUG_DISEASE` / `RENAL_AVOID` / `dose_ceiling` tables in `oracle.rs`.
+3. **Governance gate → `HIGH_ALERT` in `longhorizon_llm.rs`** (or load a richer Rego policy via `PolicyEngine`).
+
+**Keep the integrity protocol (the reason results are trustable):** pre-register hazards + harm rules + metrics
+*before* running (`docs/reports/2026-06-06-...preregistration.md` is the template); keep the harm rules **hidden
+from the model**; **don't aim errors** at the gate's strong zone; report **all** seeds and models, including
+where the gate fails. A result that violates these is a demo, not evidence.
+
+```bash
+# examples
+cargo run -p cliniclaw-sim --bin longhorizon_llm -- llama3.2 5          # local
+set -a && source secrets.env && set +a
+cargo run -p cliniclaw-sim --bin longhorizon_llm -- claude:claude-opus-4-8 5   # frontier ceiling
+```
+
+Real-LLM results + the 4-tier (llama/medgemma/deepseek/claude) capability gradient:
+`docs/reports/2026-06-07-real-llm-longhorizon-results.md`.
+
 ## Phase 2 Deferrals (not implemented — not claimed)
 
 - **Input-sensitive LLM agent in the loop** — the MVP re-prescribes the corrupted record directly;
