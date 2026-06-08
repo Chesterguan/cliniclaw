@@ -1,32 +1,818 @@
 {
-  "_provenance": "Authoritative drug-safety rules TRANSCRIBED from published criteria — each rule cites its source. This is a curated subset (not a full DB dump): the bulk machine-readable DBs (DDInter drug-drug; RxSafeBench RxRisk) were not reachable programmatically. To expand: drop a downloaded DDInter / RxRisk CSV into data/rules/ and extend the loader. Sources: AGS Beers Criteria 2023 (J Am Geriatr Soc, doi:10.1111/jgs.18372); STOPP/START v3 (Eur Geriatr Med 2023, doi:10.1007/s41999-023-00777-y); FDA prescribing labels; KDIGO. NOT authored from our own medical judgment.",
-  "_schema": "kind=drug_lab|drug_condition|drug_drug; drug/partner/condition are lowercase substring match terms; severity=contraindicated|avoid|major|caution",
+  "_provenance": "Authoritative drug-safety rules TRANSCRIBED from published criteria \u2014 each rule cites its source. This is a curated subset (not a full DB dump): the bulk machine-readable DBs (DDInter drug-drug; RxSafeBench RxRisk) were not reachable programmatically. To expand: drop a downloaded DDInter / RxRisk CSV into data/rules/ and extend the loader. Sources: AGS Beers Criteria 2023 (J Am Geriatr Soc, doi:10.1111/jgs.18372); STOPP/START v3 (Eur Geriatr Med 2023, doi:10.1007/s41999-023-00777-y); FDA prescribing labels; KDIGO. NOT authored from our own medical judgment.",
+  "_schema": "kind=drug_lab|drug_condition|drug_drug; drug/partner/condition are lowercase substring match terms; lab keys used: egfr, potassium, inr, resp_rate, digoxin_level, lithium_level, glucose; severity=contraindicated|avoid|major|caution",
   "rules": [
-    {"id": "renal_metformin", "kind": "drug_lab", "drug": ["metformin"], "lab": "egfr", "op": "<", "threshold": 30, "severity": "contraindicated", "source": "FDA metformin label (contraindicated eGFR <30); AGS Beers 2023 Table 5 (renal)"},
-    {"id": "renal_nsaid", "kind": "drug_lab", "drug": ["ibuprofen", "naproxen", "diclofenac", "ketorolac", "indomethacin", "nsaid"], "lab": "egfr", "op": "<", "threshold": 30, "severity": "avoid", "source": "AGS Beers 2023 Table 5 (avoid NSAIDs in CKD stage 4-5); STOPP v3 (NSAID + eGFR<50)"},
-    {"id": "renal_spironolactone", "kind": "drug_lab", "drug": ["spironolactone", "eplerenone"], "lab": "egfr", "op": "<", "threshold": 30, "severity": "avoid", "source": "STOPP v3 (aldosterone antagonist + eGFR<30, hyperkalemia risk)"},
-    {"id": "renal_nitrofurantoin", "kind": "drug_lab", "drug": ["nitrofurantoin"], "lab": "egfr", "op": "<", "threshold": 30, "severity": "avoid", "source": "AGS Beers 2023 (avoid CrCl <30); FDA label"},
-
-    {"id": "hf_nsaid", "kind": "drug_condition", "drug": ["ibuprofen", "naproxen", "diclofenac", "ketorolac", "indomethacin", "nsaid"], "condition": ["heart failure", "hfref", "congestive heart failure", "reduced ejection fraction"], "severity": "avoid", "source": "AGS Beers 2023 Table 3 (NSAIDs avoid in heart failure); STOPP v3"},
-    {"id": "hf_diltiazem_verapamil", "kind": "drug_condition", "drug": ["diltiazem", "verapamil"], "condition": ["heart failure", "reduced ejection fraction", "hfref"], "severity": "avoid", "source": "AGS Beers 2023 Table 3 (non-dihydropyridine CCB avoid in HFrEF)"},
-    {"id": "hf_thiazolidinedione", "kind": "drug_condition", "drug": ["pioglitazone", "rosiglitazone"], "condition": ["heart failure"], "severity": "avoid", "source": "AGS Beers 2023 Table 3 (TZDs promote fluid retention in HF)"},
-
-    {"id": "hyperk_acei_arb", "kind": "drug_lab", "drug": ["lisinopril", "enalapril", "ramipril", "losartan", "valsartan", "candesartan", "ace inhibitor", "arb"], "lab": "potassium", "op": ">", "threshold": 5.5, "severity": "avoid", "source": "FDA ACE-inhibitor/ARB labels (avoid/withhold with hyperkalemia); KDIGO"},
-    {"id": "hyperk_spironolactone", "kind": "drug_lab", "drug": ["spironolactone", "eplerenone", "amiloride", "triamterene"], "lab": "potassium", "op": ">", "threshold": 5.5, "severity": "contraindicated", "source": "FDA spironolactone label (contraindicated in hyperkalemia)"},
-
-    {"id": "inr_warfarin_supra", "kind": "drug_lab", "drug": ["warfarin"], "lab": "inr", "op": ">", "threshold": 3.5, "severity": "avoid", "source": "ACCP/standard anticoagulation management (hold/reduce warfarin when INR supratherapeutic, target 2-3)"},
-
-    {"id": "resp_opioid", "kind": "drug_lab", "drug": ["oxycodone", "hydrocodone", "morphine", "hydromorphone", "fentanyl", "oxymorphone", "codeine", "opioid"], "lab": "resp_rate", "op": "<", "threshold": 10, "severity": "contraindicated", "source": "FDA opioid labeling (respiratory depression — hold/reduce; RR<12 is a red flag, <10 unsafe)"},
-    {"id": "resp_benzo_opioid", "kind": "drug_drug", "drug": ["lorazepam", "diazepam", "alprazolam", "clonazepam", "temazepam", "benzodiazepine"], "partner": ["oxycodone", "hydrocodone", "morphine", "hydromorphone", "fentanyl", "opioid"], "severity": "major", "source": "FDA boxed warning (benzodiazepine + opioid — respiratory depression); AGS Beers 2023 drug-drug"},
-
-    {"id": "geri_benzodiazepine", "kind": "drug_condition", "drug": ["lorazepam", "diazepam", "alprazolam", "clonazepam", "temazepam", "benzodiazepine"], "condition": ["delirium", "dementia", "falls", "recurrent falls"], "severity": "avoid", "source": "AGS Beers 2023 (benzodiazepines — falls/cognitive in older adults); STOPP v3"},
-    {"id": "geri_sulfonylurea_long", "kind": "drug_condition", "drug": ["glyburide", "glibenclamide", "chlorpropamide"], "condition": ["older adult", "elderly", "age>=65"], "severity": "avoid", "source": "AGS Beers 2023 (long-acting sulfonylureas — prolonged hypoglycemia)"},
-    {"id": "geri_anticholinergic_dementia", "kind": "drug_condition", "drug": ["diphenhydramine", "oxybutynin", "amitriptyline", "hydroxyzine"], "condition": ["dementia", "delirium", "cognitive impairment"], "severity": "avoid", "source": "AGS Beers 2023 Table 3 (strong anticholinergics in dementia)"},
-    {"id": "ppi_long_term", "kind": "drug_condition", "drug": ["omeprazole", "pantoprazole", "esomeprazole", "lansoprazole", "proton pump inhibitor"], "condition": ["chronic ppi >8 weeks", "long-term ppi"], "severity": "caution", "source": "AGS Beers 2023 (avoid PPI >8 weeks without indication)"},
-
-    {"id": "dd_warfarin_nsaid", "kind": "drug_drug", "drug": ["warfarin"], "partner": ["ibuprofen", "naproxen", "diclofenac", "ketorolac", "nsaid", "aspirin"], "severity": "major", "source": "AGS Beers 2023 drug-drug (warfarin + NSAID/antiplatelet — bleeding)"},
-    {"id": "dd_acei_potassium_sparing", "kind": "drug_drug", "drug": ["lisinopril", "enalapril", "ramipril", "losartan", "valsartan", "ace inhibitor", "arb"], "partner": ["spironolactone", "eplerenone", "amiloride", "triamterene"], "severity": "major", "source": "Standard pharmacology / KDIGO (ACE-I/ARB + K-sparing diuretic — hyperkalemia)"},
-    {"id": "dd_nsaid_corticosteroid", "kind": "drug_drug", "drug": ["ibuprofen", "naproxen", "diclofenac", "nsaid"], "partner": ["prednisone", "prednisolone", "dexamethasone", "corticosteroid"], "severity": "major", "source": "AGS Beers 2023 drug-drug (NSAID + corticosteroid — GI bleed)"},
-    {"id": "dd_two_anticoagulants", "kind": "drug_drug", "drug": ["warfarin", "apixaban", "rivaroxaban", "dabigatran", "heparin", "enoxaparin"], "partner": ["warfarin", "apixaban", "rivaroxaban", "dabigatran", "heparin", "enoxaparin"], "severity": "major", "source": "Standard (two concurrent anticoagulants — bleeding); AGS Beers 2023"}
+    {
+      "id": "renal_metformin",
+      "kind": "drug_lab",
+      "drug": [
+        "metformin"
+      ],
+      "lab": "egfr",
+      "op": "<",
+      "threshold": 30,
+      "severity": "contraindicated",
+      "source": "FDA metformin label (contraindicated eGFR <30); AGS Beers 2023 Table 5 (renal)"
+    },
+    {
+      "id": "renal_nsaid",
+      "kind": "drug_lab",
+      "drug": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "ketorolac",
+        "indomethacin",
+        "nsaid"
+      ],
+      "lab": "egfr",
+      "op": "<",
+      "threshold": 30,
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 5 (avoid NSAIDs in CKD stage 4-5); STOPP v3 (NSAID + eGFR<50)"
+    },
+    {
+      "id": "renal_spironolactone",
+      "kind": "drug_lab",
+      "drug": [
+        "spironolactone",
+        "eplerenone"
+      ],
+      "lab": "egfr",
+      "op": "<",
+      "threshold": 30,
+      "severity": "avoid",
+      "source": "STOPP v3 (aldosterone antagonist + eGFR<30, hyperkalemia risk)"
+    },
+    {
+      "id": "renal_nitrofurantoin",
+      "kind": "drug_lab",
+      "drug": [
+        "nitrofurantoin"
+      ],
+      "lab": "egfr",
+      "op": "<",
+      "threshold": 30,
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (avoid CrCl <30); FDA label"
+    },
+    {
+      "id": "hf_nsaid",
+      "kind": "drug_condition",
+      "drug": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "ketorolac",
+        "indomethacin",
+        "nsaid"
+      ],
+      "condition": [
+        "heart failure",
+        "hfref",
+        "congestive heart failure",
+        "reduced ejection fraction"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (NSAIDs avoid in heart failure); STOPP v3"
+    },
+    {
+      "id": "hf_diltiazem_verapamil",
+      "kind": "drug_condition",
+      "drug": [
+        "diltiazem",
+        "verapamil"
+      ],
+      "condition": [
+        "heart failure",
+        "reduced ejection fraction",
+        "hfref"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (non-dihydropyridine CCB avoid in HFrEF)"
+    },
+    {
+      "id": "hf_thiazolidinedione",
+      "kind": "drug_condition",
+      "drug": [
+        "pioglitazone",
+        "rosiglitazone"
+      ],
+      "condition": [
+        "heart failure"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (TZDs promote fluid retention in HF)"
+    },
+    {
+      "id": "hyperk_acei_arb",
+      "kind": "drug_lab",
+      "drug": [
+        "lisinopril",
+        "enalapril",
+        "ramipril",
+        "losartan",
+        "valsartan",
+        "candesartan",
+        "ace inhibitor",
+        "arb"
+      ],
+      "lab": "potassium",
+      "op": ">",
+      "threshold": 5.5,
+      "severity": "avoid",
+      "source": "FDA ACE-inhibitor/ARB labels (avoid/withhold with hyperkalemia); KDIGO"
+    },
+    {
+      "id": "hyperk_spironolactone",
+      "kind": "drug_lab",
+      "drug": [
+        "spironolactone",
+        "eplerenone",
+        "amiloride",
+        "triamterene"
+      ],
+      "lab": "potassium",
+      "op": ">",
+      "threshold": 5.5,
+      "severity": "contraindicated",
+      "source": "FDA spironolactone label (contraindicated in hyperkalemia)"
+    },
+    {
+      "id": "inr_warfarin_supra",
+      "kind": "drug_lab",
+      "drug": [
+        "warfarin"
+      ],
+      "lab": "inr",
+      "op": ">",
+      "threshold": 3.5,
+      "severity": "avoid",
+      "source": "ACCP/standard anticoagulation management (hold/reduce warfarin when INR supratherapeutic, target 2-3)"
+    },
+    {
+      "id": "resp_opioid",
+      "kind": "drug_lab",
+      "drug": [
+        "oxycodone",
+        "hydrocodone",
+        "morphine",
+        "hydromorphone",
+        "fentanyl",
+        "oxymorphone",
+        "codeine",
+        "opioid"
+      ],
+      "lab": "resp_rate",
+      "op": "<",
+      "threshold": 10,
+      "severity": "contraindicated",
+      "source": "FDA opioid labeling (respiratory depression \u2014 hold/reduce; RR<12 is a red flag, <10 unsafe)"
+    },
+    {
+      "id": "resp_benzo_opioid",
+      "kind": "drug_drug",
+      "drug": [
+        "lorazepam",
+        "diazepam",
+        "alprazolam",
+        "clonazepam",
+        "temazepam",
+        "benzodiazepine"
+      ],
+      "partner": [
+        "oxycodone",
+        "hydrocodone",
+        "morphine",
+        "hydromorphone",
+        "fentanyl",
+        "opioid"
+      ],
+      "severity": "major",
+      "source": "FDA boxed warning (benzodiazepine + opioid \u2014 respiratory depression); AGS Beers 2023 drug-drug"
+    },
+    {
+      "id": "geri_benzodiazepine",
+      "kind": "drug_condition",
+      "drug": [
+        "lorazepam",
+        "diazepam",
+        "alprazolam",
+        "clonazepam",
+        "temazepam",
+        "benzodiazepine"
+      ],
+      "condition": [
+        "delirium",
+        "dementia",
+        "falls",
+        "recurrent falls"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (benzodiazepines \u2014 falls/cognitive in older adults); STOPP v3"
+    },
+    {
+      "id": "geri_sulfonylurea_long",
+      "kind": "drug_condition",
+      "drug": [
+        "glyburide",
+        "glibenclamide",
+        "chlorpropamide"
+      ],
+      "condition": [
+        "older adult",
+        "elderly",
+        "age>=65"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (long-acting sulfonylureas \u2014 prolonged hypoglycemia)"
+    },
+    {
+      "id": "geri_anticholinergic_dementia",
+      "kind": "drug_condition",
+      "drug": [
+        "diphenhydramine",
+        "oxybutynin",
+        "amitriptyline",
+        "hydroxyzine"
+      ],
+      "condition": [
+        "dementia",
+        "delirium",
+        "cognitive impairment"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (strong anticholinergics in dementia)"
+    },
+    {
+      "id": "ppi_long_term",
+      "kind": "drug_condition",
+      "drug": [
+        "omeprazole",
+        "pantoprazole",
+        "esomeprazole",
+        "lansoprazole",
+        "proton pump inhibitor"
+      ],
+      "condition": [
+        "chronic ppi >8 weeks",
+        "long-term ppi"
+      ],
+      "severity": "caution",
+      "source": "AGS Beers 2023 (avoid PPI >8 weeks without indication)"
+    },
+    {
+      "id": "dd_warfarin_nsaid",
+      "kind": "drug_drug",
+      "drug": [
+        "warfarin"
+      ],
+      "partner": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "ketorolac",
+        "nsaid",
+        "aspirin"
+      ],
+      "severity": "major",
+      "source": "AGS Beers 2023 drug-drug (warfarin + NSAID/antiplatelet \u2014 bleeding)"
+    },
+    {
+      "id": "dd_acei_potassium_sparing",
+      "kind": "drug_drug",
+      "drug": [
+        "lisinopril",
+        "enalapril",
+        "ramipril",
+        "losartan",
+        "valsartan",
+        "ace inhibitor",
+        "arb"
+      ],
+      "partner": [
+        "spironolactone",
+        "eplerenone",
+        "amiloride",
+        "triamterene"
+      ],
+      "severity": "major",
+      "source": "Standard pharmacology / KDIGO (ACE-I/ARB + K-sparing diuretic \u2014 hyperkalemia)"
+    },
+    {
+      "id": "dd_nsaid_corticosteroid",
+      "kind": "drug_drug",
+      "drug": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "nsaid"
+      ],
+      "partner": [
+        "prednisone",
+        "prednisolone",
+        "dexamethasone",
+        "corticosteroid"
+      ],
+      "severity": "major",
+      "source": "AGS Beers 2023 drug-drug (NSAID + corticosteroid \u2014 GI bleed)"
+    },
+    {
+      "id": "dd_two_anticoagulants",
+      "kind": "drug_drug",
+      "drug": [
+        "warfarin",
+        "apixaban",
+        "rivaroxaban",
+        "dabigatran",
+        "heparin",
+        "enoxaparin"
+      ],
+      "partner": [
+        "warfarin",
+        "apixaban",
+        "rivaroxaban",
+        "dabigatran",
+        "heparin",
+        "enoxaparin"
+      ],
+      "severity": "major",
+      "source": "Standard (two concurrent anticoagulants \u2014 bleeding); AGS Beers 2023"
+    },
+    {
+      "id": "ulcer_nsaid",
+      "kind": "drug_condition",
+      "drug": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "ketorolac",
+        "indomethacin",
+        "nsaid"
+      ],
+      "condition": [
+        "peptic ulcer",
+        "gastrointestinal bleed",
+        "gi bleed",
+        "history of gi bleeding"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (NSAIDs with history of PUD/GI bleed)"
+    },
+    {
+      "id": "bph_anticholinergic",
+      "kind": "drug_condition",
+      "drug": [
+        "oxybutynin",
+        "tolterodine",
+        "diphenhydramine",
+        "hyoscyamine",
+        "tolterodine"
+      ],
+      "condition": [
+        "benign prostatic hyperplasia",
+        "bph",
+        "urinary retention"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (strong anticholinergics in BPH/urinary retention)"
+    },
+    {
+      "id": "glaucoma_anticholinergic",
+      "kind": "drug_condition",
+      "drug": [
+        "oxybutynin",
+        "diphenhydramine",
+        "amitriptyline",
+        "hyoscyamine",
+        "atropine"
+      ],
+      "condition": [
+        "narrow-angle glaucoma",
+        "angle-closure glaucoma"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (anticholinergics in angle-closure glaucoma)"
+    },
+    {
+      "id": "dementia_antipsychotic",
+      "kind": "drug_condition",
+      "drug": [
+        "haloperidol",
+        "quetiapine",
+        "risperidone",
+        "olanzapine",
+        "aripiprazole",
+        "antipsychotic"
+      ],
+      "condition": [
+        "dementia",
+        "cognitive impairment"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 + FDA boxed warning (antipsychotics increase mortality in dementia)"
+    },
+    {
+      "id": "parkinson_antidopaminergic",
+      "kind": "drug_condition",
+      "drug": [
+        "metoclopramide",
+        "prochlorperazine",
+        "haloperidol",
+        "risperidone"
+      ],
+      "condition": [
+        "parkinson",
+        "parkinsonism"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (dopamine-blockers worsen Parkinson disease)"
+    },
+    {
+      "id": "asthma_nonselective_betablocker",
+      "kind": "drug_condition",
+      "drug": [
+        "propranolol",
+        "nadolol",
+        "timolol",
+        "sotalol"
+      ],
+      "condition": [
+        "asthma",
+        "reactive airway",
+        "bronchospasm"
+      ],
+      "severity": "avoid",
+      "source": "FDA labeling / STOPP v3 (non-selective beta-blockers in asthma \u2014 bronchospasm)"
+    },
+    {
+      "id": "copd_benzodiazepine",
+      "kind": "drug_condition",
+      "drug": [
+        "lorazepam",
+        "diazepam",
+        "alprazolam",
+        "clonazepam",
+        "temazepam",
+        "benzodiazepine"
+      ],
+      "condition": [
+        "copd",
+        "chronic obstructive pulmonary disease",
+        "respiratory failure"
+      ],
+      "severity": "caution",
+      "source": "STOPP v3 (benzodiazepines in COPD \u2014 respiratory depression)"
+    },
+    {
+      "id": "zdrug_falls",
+      "kind": "drug_condition",
+      "drug": [
+        "zolpidem",
+        "zopiclone",
+        "eszopiclone",
+        "zaleplon"
+      ],
+      "condition": [
+        "falls",
+        "recurrent falls",
+        "older adult"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 ('Z-drug' hypnotics \u2014 falls/fractures in older adults)"
+    },
+    {
+      "id": "tca_cardiac_conduction",
+      "kind": "drug_condition",
+      "drug": [
+        "amitriptyline",
+        "nortriptyline",
+        "imipramine",
+        "doxepin"
+      ],
+      "condition": [
+        "arrhythmia",
+        "heart block",
+        "conduction abnormality",
+        "prolonged qt"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 Table 3 (TCAs with cardiac conduction disease)"
+    },
+    {
+      "id": "estrogen_breast_cancer",
+      "kind": "drug_condition",
+      "drug": [
+        "estrogen",
+        "estradiol",
+        "conjugated estrogen"
+      ],
+      "condition": [
+        "breast cancer",
+        "history of breast cancer",
+        "venous thromboembolism"
+      ],
+      "severity": "avoid",
+      "source": "FDA labeling / AGS Beers 2023 (systemic estrogen with breast cancer/VTE history)"
+    },
+    {
+      "id": "testosterone_prostate_cancer",
+      "kind": "drug_condition",
+      "drug": [
+        "testosterone"
+      ],
+      "condition": [
+        "prostate cancer",
+        "breast cancer"
+      ],
+      "severity": "contraindicated",
+      "source": "FDA testosterone labeling (contraindicated in prostate/breast cancer)"
+    },
+    {
+      "id": "muscle_relaxant_elderly",
+      "kind": "drug_condition",
+      "drug": [
+        "cyclobenzaprine",
+        "carisoprodol",
+        "methocarbamol",
+        "metaxalone"
+      ],
+      "condition": [
+        "older adult",
+        "elderly"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (skeletal muscle relaxants \u2014 anticholinergic/sedation in older adults)"
+    },
+    {
+      "id": "first_gen_antihistamine_elderly",
+      "kind": "drug_condition",
+      "drug": [
+        "diphenhydramine",
+        "hydroxyzine",
+        "chlorpheniramine",
+        "promethazine"
+      ],
+      "condition": [
+        "older adult",
+        "elderly"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (first-generation antihistamines \u2014 anticholinergic in older adults)"
+    },
+    {
+      "id": "alpha_blocker_bp_elderly",
+      "kind": "drug_condition",
+      "drug": [
+        "doxazosin",
+        "terazosin",
+        "prazosin"
+      ],
+      "condition": [
+        "older adult",
+        "elderly",
+        "orthostatic hypotension"
+      ],
+      "severity": "avoid",
+      "source": "AGS Beers 2023 (peripheral alpha-1 blockers as antihypertensives \u2014 orthostasis in older adults)"
+    },
+    {
+      "id": "dd_warfarin_amiodarone",
+      "kind": "drug_drug",
+      "drug": [
+        "warfarin"
+      ],
+      "partner": [
+        "amiodarone"
+      ],
+      "severity": "major",
+      "source": "Standard / FDA (amiodarone raises INR \u2014 bleeding)"
+    },
+    {
+      "id": "dd_warfarin_tmp_smx",
+      "kind": "drug_drug",
+      "drug": [
+        "warfarin"
+      ],
+      "partner": [
+        "trimethoprim",
+        "sulfamethoxazole",
+        "co-trimoxazole",
+        "bactrim"
+      ],
+      "severity": "major",
+      "source": "Standard / FDA (TMP-SMX potentiates warfarin \u2014 bleeding)"
+    },
+    {
+      "id": "dd_warfarin_ssri",
+      "kind": "drug_drug",
+      "drug": [
+        "warfarin"
+      ],
+      "partner": [
+        "fluoxetine",
+        "sertraline",
+        "paroxetine",
+        "citalopram",
+        "escitalopram"
+      ],
+      "severity": "major",
+      "source": "AGS Beers 2023 drug-drug (warfarin + SSRI \u2014 bleeding)"
+    },
+    {
+      "id": "dd_nsaid_ssri",
+      "kind": "drug_drug",
+      "drug": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "nsaid"
+      ],
+      "partner": [
+        "fluoxetine",
+        "sertraline",
+        "paroxetine",
+        "citalopram",
+        "escitalopram"
+      ],
+      "severity": "major",
+      "source": "AGS Beers 2023 drug-drug (NSAID + SSRI \u2014 GI bleed)"
+    },
+    {
+      "id": "dd_statin_cyp3a4_inhibitor",
+      "kind": "drug_drug",
+      "drug": [
+        "simvastatin",
+        "lovastatin"
+      ],
+      "partner": [
+        "clarithromycin",
+        "erythromycin",
+        "itraconazole",
+        "ketoconazole"
+      ],
+      "severity": "major",
+      "source": "FDA simvastatin/lovastatin labeling (CYP3A4 inhibitors \u2014 rhabdomyolysis)"
+    },
+    {
+      "id": "dd_methotrexate_nsaid",
+      "kind": "drug_drug",
+      "drug": [
+        "methotrexate"
+      ],
+      "partner": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "nsaid",
+        "aspirin"
+      ],
+      "severity": "major",
+      "source": "FDA methotrexate labeling (NSAIDs reduce MTX clearance \u2014 toxicity)"
+    },
+    {
+      "id": "dd_methotrexate_trimethoprim",
+      "kind": "drug_drug",
+      "drug": [
+        "methotrexate"
+      ],
+      "partner": [
+        "trimethoprim",
+        "sulfamethoxazole",
+        "co-trimoxazole",
+        "bactrim"
+      ],
+      "severity": "major",
+      "source": "Standard (MTX + trimethoprim \u2014 myelosuppression)"
+    },
+    {
+      "id": "dd_acei_lithium",
+      "kind": "drug_drug",
+      "drug": [
+        "lithium"
+      ],
+      "partner": [
+        "lisinopril",
+        "enalapril",
+        "ramipril",
+        "losartan",
+        "valsartan",
+        "ace inhibitor",
+        "arb"
+      ],
+      "severity": "major",
+      "source": "Standard / FDA (ACE-I/ARB raise lithium levels \u2014 toxicity)"
+    },
+    {
+      "id": "dd_nsaid_lithium",
+      "kind": "drug_drug",
+      "drug": [
+        "lithium"
+      ],
+      "partner": [
+        "ibuprofen",
+        "naproxen",
+        "diclofenac",
+        "nsaid"
+      ],
+      "severity": "major",
+      "source": "Standard / FDA (NSAIDs raise lithium levels \u2014 toxicity)"
+    },
+    {
+      "id": "dd_digoxin_amiodarone",
+      "kind": "drug_drug",
+      "drug": [
+        "digoxin"
+      ],
+      "partner": [
+        "amiodarone",
+        "verapamil"
+      ],
+      "severity": "major",
+      "source": "Standard / FDA (amiodarone/verapamil raise digoxin \u2014 toxicity)"
+    },
+    {
+      "id": "dd_clopidogrel_omeprazole",
+      "kind": "drug_drug",
+      "drug": [
+        "clopidogrel"
+      ],
+      "partner": [
+        "omeprazole",
+        "esomeprazole"
+      ],
+      "severity": "major",
+      "source": "FDA clopidogrel labeling (omeprazole/esomeprazole reduce clopidogrel activation)"
+    },
+    {
+      "id": "dd_opioid_gabapentinoid",
+      "kind": "drug_drug",
+      "drug": [
+        "oxycodone",
+        "hydrocodone",
+        "morphine",
+        "hydromorphone",
+        "fentanyl",
+        "opioid"
+      ],
+      "partner": [
+        "gabapentin",
+        "pregabalin"
+      ],
+      "severity": "major",
+      "source": "FDA 2019 warning (opioid + gabapentinoid \u2014 respiratory depression)"
+    },
+    {
+      "id": "digoxin_toxic_level",
+      "kind": "drug_lab",
+      "drug": [
+        "digoxin"
+      ],
+      "lab": "digoxin_level",
+      "op": ">",
+      "threshold": 2.0,
+      "severity": "contraindicated",
+      "source": "Standard (digoxin level >2.0 ng/mL \u2014 toxicity, hold)"
+    },
+    {
+      "id": "lithium_toxic_level",
+      "kind": "drug_lab",
+      "drug": [
+        "lithium"
+      ],
+      "lab": "lithium_level",
+      "op": ">",
+      "threshold": 1.2,
+      "severity": "contraindicated",
+      "source": "Standard / FDA (lithium level >1.2 mmol/L \u2014 toxicity, hold)"
+    },
+    {
+      "id": "hypoglycemia_insulin_sulfonylurea",
+      "kind": "drug_lab",
+      "drug": [
+        "insulin",
+        "glipizide",
+        "glyburide",
+        "glimepiride"
+      ],
+      "lab": "glucose",
+      "op": "<",
+      "threshold": 70,
+      "severity": "avoid",
+      "source": "Standard (hypoglycemia <70 mg/dL \u2014 reduce/hold insulin & sulfonylurea)"
+    },
+    {
+      "id": "renal_gabapentinoid",
+      "kind": "drug_lab",
+      "drug": [
+        "gabapentin",
+        "pregabalin"
+      ],
+      "lab": "egfr",
+      "op": "<",
+      "threshold": 30,
+      "severity": "caution",
+      "source": "FDA gabapentin/pregabalin labeling (renal accumulation at eGFR<30 \u2014 dose-adjust)"
+    }
   ]
 }

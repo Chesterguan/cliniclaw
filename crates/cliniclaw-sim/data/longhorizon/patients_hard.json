@@ -17,52 +17,76 @@
     ],
     "visits": [
       {
-        "egfr": 62.0,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 62.0,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 58.2,
-        "potassium": 4.3
+        "labs": {
+          "egfr": 58.2,
+          "potassium": 4.3
+        }
       },
       {
-        "egfr": 54.4,
-        "potassium": 4.4
+        "labs": {
+          "egfr": 54.4,
+          "potassium": 4.4
+        }
       },
       {
-        "egfr": 50.5,
-        "potassium": 4.6
+        "labs": {
+          "egfr": 50.5,
+          "potassium": 4.6
+        }
       },
       {
-        "egfr": 46.7,
-        "potassium": 4.8
+        "labs": {
+          "egfr": 46.7,
+          "potassium": 4.8
+        }
       },
       {
-        "egfr": 42.9,
-        "potassium": 4.9
+        "labs": {
+          "egfr": 42.9,
+          "potassium": 4.9
+        }
       },
       {
-        "egfr": 39.1,
-        "potassium": 5.1
+        "labs": {
+          "egfr": 39.1,
+          "potassium": 5.1
+        }
       },
       {
-        "egfr": 35.3,
-        "potassium": 5.2
+        "labs": {
+          "egfr": 35.3,
+          "potassium": 5.2
+        }
       },
       {
-        "egfr": 31.5,
-        "potassium": 5.4
+        "labs": {
+          "egfr": 31.5,
+          "potassium": 5.4
+        }
       },
       {
-        "egfr": 27.6,
-        "potassium": 5.6
+        "labs": {
+          "egfr": 27.6,
+          "potassium": 5.6
+        }
       },
       {
-        "egfr": 23.8,
-        "potassium": 5.7
+        "labs": {
+          "egfr": 23.8,
+          "potassium": 5.7
+        }
       },
       {
-        "egfr": 20.0,
-        "potassium": 5.9
+        "labs": {
+          "egfr": 20.0,
+          "potassium": 5.9
+        }
       }
     ]
   },
@@ -112,40 +136,64 @@
     ],
     "visits": [
       {
-        "inr": 2.1
+        "labs": {
+          "inr": 2.1
+        }
       },
       {
-        "inr": 2.3
+        "labs": {
+          "inr": 2.3
+        }
       },
       {
-        "inr": 2.6
+        "labs": {
+          "inr": 2.6
+        }
       },
       {
-        "inr": 2.8
+        "labs": {
+          "inr": 2.8
+        }
       },
       {
-        "inr": 3.0
+        "labs": {
+          "inr": 3.0
+        }
       },
       {
-        "inr": 3.3
+        "labs": {
+          "inr": 3.3
+        }
       },
       {
-        "inr": 3.5
+        "labs": {
+          "inr": 3.5
+        }
       },
       {
-        "inr": 3.8
+        "labs": {
+          "inr": 3.8
+        }
       },
       {
-        "inr": 4.0
+        "labs": {
+          "inr": 4.0
+        }
       },
       {
-        "inr": 4.2
+        "labs": {
+          "inr": 4.2
+        }
       },
       {
-        "inr": 4.5
+        "labs": {
+          "inr": 4.5
+        }
       },
       {
-        "inr": 4.7
+        "labs": {
+          "inr": 4.7
+        }
       }
     ]
   },
@@ -164,40 +212,64 @@
     ],
     "visits": [
       {
-        "resp_rate": 16.0
+        "labs": {
+          "resp_rate": 16.0
+        }
       },
       {
-        "resp_rate": 15.2
+        "labs": {
+          "resp_rate": 15.2
+        }
       },
       {
-        "resp_rate": 14.4
+        "labs": {
+          "resp_rate": 14.4
+        }
       },
       {
-        "resp_rate": 13.5
+        "labs": {
+          "resp_rate": 13.5
+        }
       },
       {
-        "resp_rate": 12.7
+        "labs": {
+          "resp_rate": 12.7
+        }
       },
       {
-        "resp_rate": 11.9
+        "labs": {
+          "resp_rate": 11.9
+        }
       },
       {
-        "resp_rate": 11.1
+        "labs": {
+          "resp_rate": 11.1
+        }
       },
       {
-        "resp_rate": 10.3
+        "labs": {
+          "resp_rate": 10.3
+        }
       },
       {
-        "resp_rate": 9.5
+        "labs": {
+          "resp_rate": 9.5
+        }
       },
       {
-        "resp_rate": 8.6
+        "labs": {
+          "resp_rate": 8.6
+        }
       },
       {
-        "resp_rate": 7.8
+        "labs": {
+          "resp_rate": 7.8
+        }
       },
       {
-        "resp_rate": 7.0
+        "labs": {
+          "resp_rate": 7.0
+        }
       }
     ]
   },
@@ -216,40 +288,64 @@
     ],
     "visits": [
       {
-        "potassium": 4.4
+        "labs": {
+          "potassium": 4.4
+        }
       },
       {
-        "potassium": 4.6
+        "labs": {
+          "potassium": 4.6
+        }
       },
       {
-        "potassium": 4.7
+        "labs": {
+          "potassium": 4.7
+        }
       },
       {
-        "potassium": 4.9
+        "labs": {
+          "potassium": 4.9
+        }
       },
       {
-        "potassium": 5.0
+        "labs": {
+          "potassium": 5.0
+        }
       },
       {
-        "potassium": 5.2
+        "labs": {
+          "potassium": 5.2
+        }
       },
       {
-        "potassium": 5.3
+        "labs": {
+          "potassium": 5.3
+        }
       },
       {
-        "potassium": 5.5
+        "labs": {
+          "potassium": 5.5
+        }
       },
       {
-        "potassium": 5.6
+        "labs": {
+          "potassium": 5.6
+        }
       },
       {
-        "potassium": 5.8
+        "labs": {
+          "potassium": 5.8
+        }
       },
       {
-        "potassium": 5.9
+        "labs": {
+          "potassium": 5.9
+        }
       },
       {
-        "potassium": 6.1
+        "labs": {
+          "potassium": 6.1
+        }
       }
     ]
   },
@@ -297,40 +393,64 @@
     ],
     "visits": [
       {
-        "egfr": 35
+        "labs": {
+          "egfr": 35
+        }
       },
       {
-        "egfr": 34
+        "labs": {
+          "egfr": 34
+        }
       },
       {
-        "egfr": 34
+        "labs": {
+          "egfr": 34
+        }
       },
       {
-        "egfr": 33
+        "labs": {
+          "egfr": 33
+        }
       },
       {
-        "egfr": 33
+        "labs": {
+          "egfr": 33
+        }
       },
       {
-        "egfr": 32
+        "labs": {
+          "egfr": 32
+        }
       },
       {
-        "egfr": 31
+        "labs": {
+          "egfr": 31
+        }
       },
       {
-        "egfr": 30
+        "labs": {
+          "egfr": 30
+        }
       },
       {
-        "egfr": 30
+        "labs": {
+          "egfr": 30
+        }
       },
       {
-        "egfr": 29
+        "labs": {
+          "egfr": 29
+        }
       },
       {
-        "egfr": 29
+        "labs": {
+          "egfr": 29
+        }
       },
       {
-        "egfr": 29
+        "labs": {
+          "egfr": 29
+        }
       }
     ]
   },
@@ -377,40 +497,64 @@
     ],
     "visits": [
       {
-        "egfr": 48.0
+        "labs": {
+          "egfr": 48.0
+        }
       },
       {
-        "egfr": 45.8
+        "labs": {
+          "egfr": 45.8
+        }
       },
       {
-        "egfr": 43.6
+        "labs": {
+          "egfr": 43.6
+        }
       },
       {
-        "egfr": 41.5
+        "labs": {
+          "egfr": 41.5
+        }
       },
       {
-        "egfr": 39.3
+        "labs": {
+          "egfr": 39.3
+        }
       },
       {
-        "egfr": 37.1
+        "labs": {
+          "egfr": 37.1
+        }
       },
       {
-        "egfr": 34.9
+        "labs": {
+          "egfr": 34.9
+        }
       },
       {
-        "egfr": 32.7
+        "labs": {
+          "egfr": 32.7
+        }
       },
       {
-        "egfr": 30.5
+        "labs": {
+          "egfr": 30.5
+        }
       },
       {
-        "egfr": 28.4
+        "labs": {
+          "egfr": 28.4
+        }
       },
       {
-        "egfr": 26.2
+        "labs": {
+          "egfr": 26.2
+        }
       },
       {
-        "egfr": 24.0
+        "labs": {
+          "egfr": 24.0
+        }
       }
     ]
   },
@@ -430,52 +574,76 @@
     ],
     "visits": [
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       },
       {
-        "egfr": 88,
-        "potassium": 4.1
+        "labs": {
+          "egfr": 88,
+          "potassium": 4.1
+        }
       }
     ]
   }
